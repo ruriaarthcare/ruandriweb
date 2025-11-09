@@ -34,7 +34,8 @@ const ConsultationSummary = () => {
             Back
           </Button>
 
-          <Card className="p-8 md:p-12 shadow-medium">
+          <Card className="p-8 m
+          d:p-12 shadow-medium">
             {/* Success Header */}
             <div className="text-center mb-8">
               <div className="mb-4 flex justify-center">
