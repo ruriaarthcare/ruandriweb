@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Sparkles, User, Heart, Leaf } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -13,9 +15,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <Header />
+
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="container mx-auto px-4 py-20">
+        <div className="container mx-auto px-4 py-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
@@ -70,11 +74,10 @@ const Index = () => {
 
               <div>
                 <h3 className="text-3xl font-bold mb-3 text-foreground">
-                  Skin Consulting
+                  Skin  Concern
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Expert guidance for acne, pigmentation, anti-aging, and more.
-                  Get personalized skin care solutions.
+                  Expert guidance for acne, pigmentation, anti-aging, and more. 
                 </p>
               </div>
 
@@ -83,7 +86,7 @@ const Index = () => {
                 className="w-full bg-gradient-primary hover:opacity-90 transition-opacity"
                 size="lg"
               >
-                Start Skin Consultation
+                Start Skin Questionnaire
               </Button>
             </div>
           </Card>
@@ -96,7 +99,7 @@ const Index = () => {
 
               <div>
                 <h3 className="text-3xl font-bold mb-3 text-foreground">
-                  Hair Consulting
+                  Hair Concern
                 </h3>
                 <p className="text-muted-foreground mb-6">
                   Address hair fall, thinning, dandruff, and scalp health.
@@ -109,7 +112,7 @@ const Index = () => {
                 className="w-full bg-gradient-secondary hover:opacity-90 transition-opacity"
                 size="lg"
               >
-                Start Hair Consultation
+                Start Hair Questionnaire
               </Button>
             </div>
           </Card>
@@ -144,9 +147,9 @@ const Index = () => {
                   <Leaf className="w-8 h-8 text-primary" />
                 </div>
               </div>
-              <h3 className="text-xl font-semibold mb-2 text-foreground">Natural</h3>
+              <h3 className="text-xl font-semibold mb-2 text-foreground">Vitality</h3>
               <p className="text-muted-foreground">
-                Holistic wellness solutions combining products and nutrition
+                Dermatology-tested formulations paired with nutrition for complete inner and outer wellness.
               </p>
             </div>
 
@@ -164,6 +167,11 @@ const Index = () => {
           </div>
         </div>
       </section>
+
+
+      {/* Footer */}
+      <Footer />
+
 
 
     </div>

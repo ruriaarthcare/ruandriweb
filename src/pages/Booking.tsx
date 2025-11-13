@@ -184,10 +184,9 @@ const Booking = () => {
               <Card className="p-6 bg-gradient-primary text-primary-foreground shadow-soft">
                 <h4 className="font-semibold mb-3">What to expect:</h4>
                 <ul className="space-y-2 text-sm">
-                  <li>• Comprehensive {type} analysis</li>
-                  <li>• Personalized treatment plan</li>
-                  <li>• Expert dermatologist consultation</li>
-                  <li>• Follow-up care included</li>
+                  <li>• Nutrition guide + supplements( if needed.) </li>
+                  <li>• Gynec opinion(first consultation free)</li>
+                  <li>• Follow-up included. (Don't put treatment word)</li>
                 </ul>
               </Card>
 
