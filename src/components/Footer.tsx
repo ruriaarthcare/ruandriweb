@@ -19,8 +19,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Ru & Ri</h3>
             <p className="text-sm text-muted-foreground">
-              Personalized skin and hair wellness solutions curated by dermatologists, nutritionists, 
-              and gynecologists for holistic well-being.
+              Personalized skin and hair wellness solutions curated by Professionals and Expert for holistic well-being.
             </p>
           </div>
 
@@ -53,8 +52,8 @@ const Footer = () => {
 
             <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
               <FaEnvelope  className="w-4 h-4" />
-              <a href="mailto:ruriaarthcare@gmail.com" className="hover:text-primary transition-colors">
-                ruriaarthcare@gmail.com
+              <a href="mailto:hello@ruandricare.com " className="hover:text-primary transition-colors">
+                hello@ruandricare.com 
               </a>
             </div>
 
@@ -74,7 +73,7 @@ const Footer = () => {
             
               {/* WhatsApp */}
               <a
-                href="https://wa.me/91XXXXXXXXXX"
+                href="https://wa.me/91xxxxxxxxxxx"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
