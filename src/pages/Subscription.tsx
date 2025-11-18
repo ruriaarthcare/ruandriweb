@@ -34,8 +34,8 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "3 Months ",
-    price: "₹6,899",
-    monthlyPrice: "₹2,300",
+    price: "₹6,497",
+    monthlyPrice: "₹2,166",
     months: 3,
     skinDescription: "Building consistency together",
     hairDescription: "Building consistency together",
@@ -50,8 +50,8 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "6 Months ",
-    price: "₹13,199",
-    monthlyPrice: "₹2,200",
+    price: "₹13,394",
+    monthlyPrice: "₹2,066",
     months: 6,
     skinDescription: "Closer care as you deepen your practice",
     hairDescription: "Closer care as you deepen your practice",
@@ -65,8 +65,8 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "9 Months",
-    price: "₹18,299",
-    monthlyPrice: "₹2,033",
+    price: "₹20,691",
+    monthlyPrice: "₹2,299",
     months: 9,
     skinDescription: "Space to breathe, grow, and adjust",
     hairDescription: "Space to breathe, grow, and adjust",
@@ -79,8 +79,8 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "12 Months",
-    price: "₹22,699",
-    monthlyPrice: "₹1,892",
+    price: "₹22,388",
+    monthlyPrice: "₹1,866",
     months: 12,
     skinDescription: "A year of partnership, presence, and care",
     hairDescription: "A year of partnership, presence, and care",
