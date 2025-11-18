@@ -50,7 +50,7 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "6 Months ",
-    price: "₹13,394",
+    price: "₹12,394",
     monthlyPrice: "₹2,066",
     months: 6,
     skinDescription: "Closer care as you deepen your practice",
