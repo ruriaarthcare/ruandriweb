@@ -167,11 +167,7 @@ const Subscription = () => {
                     {type === "skin" ? plan.skinDescription : plan.hairDescription}
                   </p>
                   <div className="mb-2">
-                    {plan.discount && (
-                      <div className="text-base text-muted-foreground line-through mb-1">
-                        ₹{(parseInt(plan.price.replace(/[₹,]/g, '')) + plan.discount).toLocaleString()}
-                      </div>
-                    )}
+                   
                     <div className="flex items-baseline gap-2">
                       <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
                         {plan.price}
@@ -180,10 +176,16 @@ const Subscription = () => {
                         ({plan.monthlyPrice}/month)
                       </p>
                     </div>
+
+                     {plan.discount && (
+                      <div className="text-base text-muted-foreground line-through mb-1 text-l">
+                        ₹{(parseInt(plan.price.replace(/[₹,]/g, '')) + plan.discount).toLocaleString()}
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                <ul className="space-y-3 mb-8 flex-grow">
+                <ul className="space-y-2 mb-8 flex-grow">
                   {plan.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-2">
                       <Check className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
