@@ -59,7 +59,7 @@ const Footer = () => {
 
               {/* Instagram */}
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/ruandricare?igsh=MXB5dW02NHUxZnFpOA=="
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
@@ -71,7 +71,7 @@ const Footer = () => {
             
               {/* WhatsApp */}
               <a
-                href="https://wa.me/91xxxxxxxxxxx"
+                href="https://wa.me/919082098456"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="WhatsApp"
@@ -82,7 +82,7 @@ const Footer = () => {
 
               {/* Facebook */}
               <a
-                href="https://facebook.com"
+                href="https://www.facebook.com/profile.php?id=61579795116727"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Facebook"

@@ -20,8 +20,8 @@ interface PlanFeatures {
 const plans: PlanFeatures[] = [
   {
     duration: "1 Month",
-    price: "₹2,499",
-    monthlyPrice: "₹2,499",
+    price: "₹2,678",
+    monthlyPrice: "₹2,678",
     months: 1,
     skinDescription: "A gentle way to begin",
     hairDescription: "A gentle way to begin",
