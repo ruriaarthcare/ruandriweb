@@ -58,10 +58,10 @@ const Index = () => {
       <section className="container mx-auto  py-0">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-bold mb-4 text-foreground">
-            Begin Your Journey
+            Where shall we begin?
           </h2>
           <p className="text-xl text-muted-foreground">
-            Choose your consultation type to get started
+            Tell us what needs your attention right now
           </p>
         </div>
 
@@ -77,7 +77,7 @@ const Index = () => {
                   Skin  Concern
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Expert guidance for acne, pigmentation, anti-aging, and more. 
+                  Whether it's breakouts, uneven tone, or skin that feels unpredictable — we're here. 
                 </p>
               </div>
 
@@ -102,8 +102,7 @@ const Index = () => {
                   Hair Concern
                 </h3>
                 <p className="text-muted-foreground mb-6">
-                  Address hair fall, thinning, dandruff, and scalp health.
-                  Achieve stronger, healthier hair.
+                  Support for hair fall, thinning, scalp concerns, or hair that's lost its strength.
                 </p>
               </div>
 
