@@ -3,52 +3,94 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
+import Header from "@/components/Header";
 
 interface PlanFeatures {
   duration: string;
   price: string;
+  monthlyPrice: string;
+  months: number;
   skinDescription: string;
   hairDescription: string;
   features: string[];
   popular?: boolean;
+  discount?: number;
 }
 
 const plans: PlanFeatures[] = [
   {
-    duration: "1 Month Trial",
+    duration: "1 Month",
     price: "₹2,499",
-    skinDescription: "Starter kit + consult",
-    hairDescription: "Starter care + insight",
-    features: ["Initial consultation", "Starter product kit", "Baseline assessment", "Email support"]
+    monthlyPrice: "₹2,499",
+    months: 1,
+    skinDescription: "A gentle way to begin",
+    hairDescription: "A gentle way to begin",
+    features: [
+      "A one-to-one conversation to understand you",
+      "Your curated starter kit",
+      "A thoughtful starting point based on what you share",
+      "We're here whenever questions come up"
+    ]
   },
   {
-    duration: "3 Months",
+    duration: "3 Months ",
     price: "₹6,899",
-    skinDescription: "Care cycle + follow-up",
-    hairDescription: "Strengthens roots",
-    features: ["Monthly check-ins", "Customized treatment plan", "Product refills", "Priority support"],
-    popular: true
+    monthlyPrice: "₹2,300",
+    months: 3,
+    skinDescription: "Building consistency together",
+    hairDescription: "Building consistency together",
+    features: [
+      "Monthly check-ins to see how you're feeling",
+      "A routine shaped around your life",
+      "Products delivered when you need them",
+      "Priority support — we've got you"
+    ],
+    popular: true,
+    discount: 1000
   },
   {
-    duration: "6 Months",
+    duration: "6 Months ",
     price: "₹13,199",
-    skinDescription: "Skin correction",
-    hairDescription: "Regrowth support",
-    features: ["Bi-weekly consultations", "Advanced treatment protocols", "Progress tracking", "Dedicated specialist"]
+    monthlyPrice: "₹2,200",
+    months: 6,
+    skinDescription: "Closer care as you deepen your practice",
+    hairDescription: "Closer care as you deepen your practice",
+    features: [
+      "We connect every two weeks",
+      "Gentle shifts as your needs evolve",
+      "Notes to help you reflect and notice patterns",
+      "Your dedicated guide, all the way through"
+    ],
+    discount: 2000
   },
   {
     duration: "9 Months",
     price: "₹18,299",
-    skinDescription: "Hormonal balance + glow",
-    hairDescription: "Hormonal rebalancing",
-    features: ["Hormonal assessment", "Holistic wellness plan", "Nutritional guidance", "24/7 chat support"]
+    monthlyPrice: "₹2,033",
+    months: 9,
+    skinDescription: "Space to breathe, grow, and adjust",
+    hairDescription: "Space to breathe, grow, and adjust",
+    features: [
+      "A deeper look at what's serving you",
+      "A flexible plan that moves with your life",
+      "Nourishment guidance when it feels right",
+      "Steady presence, always in your corner"
+    ]
   },
   {
     duration: "12 Months",
     price: "₹22,699",
-    skinDescription: "Ongoing wellness",
-    hairDescription: "Hair transformation",
-    features: ["Complete transformation program", "Quarterly in-depth reviews", "Lifestyle coaching", "VIP support"]
+    monthlyPrice: "₹1,892",
+    months: 12,
+    skinDescription: "A year of partnership, presence, and care",
+    hairDescription: "A year of partnership, presence, and care",
+    features: [
+      "A care plan that holds the whole year",
+      "Seasonal check-ins to refine what's working",
+      "Lifestyle support that feels like a conversation",
+      "Ongoing guidance whenever clarity calls"
+    ],
+    discount: 4000
   }
 ];
 
@@ -66,7 +108,8 @@ const Subscription = () => {
         plan: {
           duration: plan.duration,
           price: plan.price,
-          description: type === "skin" ? plan.skinDescription : plan.hairDescription
+          description: type === "skin" ? plan.skinDescription : plan.hairDescription,
+          discount: plan.discount
         }
       }
     });
@@ -74,6 +117,7 @@ const Subscription = () => {
 
   return (
     <div className="min-h-screen bg-gradient-hero">
+      <Header />
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           <Button
@@ -86,15 +130,11 @@ const Subscription = () => {
           </Button>
 
           <div className="text-center mb-12">
-            <Badge className="mb-4 bg-gradient-primary" variant="secondary">
-              <Sparkles className="w-3 h-3 mr-1" />
-              Personalized for Your {type === "skin" ? "Skin" : "Hair"} Goals
-            </Badge>
             <h1 className="text-5xl font-bold mb-4 text-foreground">
-              Choose Your Care Plan
+              Find your rhythm. We'll be here for every step.
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Select the plan that best fits your journey to healthier {type}
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Every plan includes thoughtfully curated formulations, expert guidance, and care that honours the whole you — from the inside out.
             </p>
           </div>
 
@@ -113,15 +153,34 @@ const Subscription = () => {
                 )}
 
                 <div className="mb-6">
-                  <h3 className="text-2xl font-bold mb-2 text-foreground">
-                    {plan.duration}
-                  </h3>
-                  <div className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
-                    {plan.price}
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-foreground">
+                      {plan.duration}
+                    </h3>
+                    {plan.discount && (
+                      <Badge className="bg-primary/10 text-primary border-primary/20 text-xs">
+                        ₹{plan.discount.toLocaleString()} off
+                      </Badge>
+                    )}
                   </div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground mb-3 italic">
                     {type === "skin" ? plan.skinDescription : plan.hairDescription}
                   </p>
+                  <div className="mb-2">
+                    {plan.discount && (
+                      <div className="text-base text-muted-foreground line-through mb-1">
+                        ₹{(parseInt(plan.price.replace(/[₹,]/g, '')) + plan.discount).toLocaleString()}
+                      </div>
+                    )}
+                    <div className="flex items-baseline gap-2">
+                      <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                        {plan.price}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        ({plan.monthlyPrice}/month)
+                      </p>
+                    </div>
+                  </div>
                 </div>
 
                 <ul className="space-y-3 mb-8 flex-grow">

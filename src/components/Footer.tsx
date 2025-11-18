@@ -2,10 +2,8 @@ import { Link } from "react-router-dom";
 import { 
   FaEnvelope ,
   FaInstagram, 
-  FaTwitter, 
   FaWhatsapp, 
   FaFacebook, 
-  FaLinkedin 
 } from "react-icons/fa";
 
 const Footer = () => {
@@ -19,7 +17,7 @@ const Footer = () => {
           <div>
             <h3 className="font-semibold text-foreground mb-4">Ru & Ri</h3>
             <p className="text-sm text-muted-foreground">
-              Personalized skin and hair wellness solutions curated by Professionals and Expert for holistic well-being.
+              Personalized skin and hair wellness solutions curated by Professionals for holistic well-being.
             </p>
           </div>
 

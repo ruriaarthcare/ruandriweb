@@ -170,6 +170,12 @@ const Booking = () => {
                     <span className="text-muted-foreground">Description</span>
                     <span className="font-medium text-sm">{plan?.description}</span>
                   </div>
+                  {plan?.discount && (
+                    <div className="flex justify-between text-primary">
+                      <span className="text-muted-foreground">Discount</span>
+                      <span className="font-medium">- ₹{plan.discount.toLocaleString()}</span>
+                    </div>
+                  )}
                   <div className="pt-3 border-t">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Total Amount</span>
@@ -186,7 +192,7 @@ const Booking = () => {
                 <ul className="space-y-2 text-sm">
                   <li>• Nutrition guide + supplements( if needed.) </li>
                   <li>• Gynec opinion(first consultation free)</li>
-                  <li>• Follow-up included. (Don't put treatment word)</li>
+                  <li>• Follow-up included.</li>
                 </ul>
               </Card>
 

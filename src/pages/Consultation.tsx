@@ -155,17 +155,6 @@ const skinQuestions: Question[] = [
     sectionIcon: "✨",
     question: "How often do you follow a skincare routine?",
     options: ["Twice daily (morning & night)", "Once a day", "Occasionally", "Rarely"]
-  },
-  {
-    id: "helpWith",
-    section: "Section 4: Your Ru & Ri Journey",
-    question: "What would you like Ru & Ri to help you with?",
-    options: [
-      "A complete personalized kit (products + nutrition)",
-      "Skincare products only",
-      "Supplements/nutrition guidance only",
-      "Both, with gynecological input if needed"
-    ]
   }
 ];
 
@@ -302,17 +291,6 @@ const hairQuestions: Question[] = [
   //   sectionIcon: "✨",
   //   question: "How often do you oil or treat your hair at home?",
   //   options: ["Weekly", "Occasionally", "Rarely", "Never"]
-  // },
-  // {
-  //   id: "helpWith",
-  //   section: "Section 4: Your Ru & Ri Journey",
-  //   question: "What would you like Ru & Ri to help you with?",
-  //   options: [
-  //     "A complete personalized kit (products + nutrition)",
-  //     "Haircare products only",
-  //     "Supplements/nutrition guidance only",
-  //     "Both, with gynecological input if needed"
-  //   ]
   // }
 ];
 
