@@ -34,7 +34,7 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "3 Months ",
-    price: "₹6,497",
+    price: "₹7,497",
     monthlyPrice: "₹2,166",
     months: 3,
     skinDescription: "Building consistency together",
@@ -50,7 +50,7 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "6 Months ",
-    price: "₹12,394",
+    price: "₹14,394",
     monthlyPrice: "₹2,066",
     months: 6,
     skinDescription: "Closer care as you deepen your practice",
@@ -79,7 +79,7 @@ const plans: PlanFeatures[] = [
   },
   {
     duration: "12 Months",
-    price: "₹22,388",
+    price: "₹26,388",
     monthlyPrice: "₹1,866",
     months: 12,
     skinDescription: "A year of partnership, presence, and care",
@@ -97,7 +97,7 @@ const plans: PlanFeatures[] = [
 const Subscription = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, answers, notes } = location.state || {};
+  const { type, answers, notes, userInfo } = location.state || {};
 
   const handleSelectPlan = (plan: PlanFeatures) => {
     navigate("/booking", {
@@ -105,6 +105,7 @@ const Subscription = () => {
         type,
         answers,
         notes,
+        userInfo,
         plan: {
           duration: plan.duration,
           price: plan.price,
@@ -167,22 +168,26 @@ const Subscription = () => {
                     {type === "skin" ? plan.skinDescription : plan.hairDescription}
                   </p>
                   <div className="mb-2">
-                   
-                    <div className="flex items-baseline gap-2">
-                      <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                        {plan.price}
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        ({plan.monthlyPrice}/month)
-                      </p>
+                  <div className="flex items-baseline gap-2">
+                    <div className="text-3xl font-bold bg-gradient-primary bg-clip-text text-transparent">
+                      ₹{
+                        plan.discount
+                          ? (parseInt(plan.price.replace(/[₹,]/g, "")) - plan.discount).toLocaleString()
+                          : parseInt(plan.price.replace(/[₹,]/g, "")).toLocaleString()
+                      }
                     </div>
-
-                     {plan.discount && (
-                      <div className="text-base text-muted-foreground line-through mb-1 text-l">
-                        ₹{(parseInt(plan.price.replace(/[₹,]/g, '')) + plan.discount).toLocaleString()}
-                      </div>
-                    )}
+                    <p className="text-xs text-muted-foreground">
+                      ({plan.monthlyPrice}/month)
+                    </p>
                   </div>
+
+                  {plan.discount && (
+                    <div className="text-base text-muted-foreground line-through mb-1 text-l">
+                      ₹{parseInt(plan.price.replace(/[₹,]/g, "")).toLocaleString()}
+                    </div>
+                  )}
+                </div>
+
                 </div>
 
                 <ul className="space-y-2 mb-8 flex-grow">

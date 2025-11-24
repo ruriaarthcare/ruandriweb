@@ -16,6 +16,7 @@ import FAQ from "./pages/FAQ";
 import Feedback from "./pages/Feedback";
 import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
+import Checkout from "./pages/Checkout";
 
 const queryClient = new QueryClient();
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/consultation-summary" element={<ConsultationSummary />} />
           <Route path="/subscription" element={<Subscription />} />
           <Route path="/booking" element={<Booking />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/about" element={<AboutUs />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="/privacy-policy" element={<PrivacyAndRefundPolicy />} />

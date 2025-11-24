@@ -9,12 +9,16 @@ import { ArrowLeft, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
 const ConsultationSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, answers } = location.state as { type: "skin" | "hair"; answers: Record<string, string | string[]> };
-  
+  const { type, answers, userInfo } = location.state as {
+    type: "skin" | "hair";
+    answers: Record<string, string | string[]>;
+    userInfo: { name: string; email: string; phone: string };
+  };
+
   const [additionalNotes, setAdditionalNotes] = useState("");
 
   const handleContinue = () => {
-    navigate("/subscription", { state: { type, answers, notes: additionalNotes } });
+    navigate("/subscription", { state: { type, answers, notes: additionalNotes , userInfo } });
   };
 
   const handleBack = () => {
@@ -49,7 +53,7 @@ const ConsultationSummary = () => {
               </h1>
               
               <p className="text-lg text-muted-foreground">
-                We've received your {type === "skin" ? "skin" : "hair"} wellness consultation responses
+                We've received your {type === "skin" ? "skin" : "hair"} wellness responses
               </p>
             </div>
 

@@ -6,7 +6,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import Header from "@/components/Header";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Question {
   id: string;
@@ -299,9 +302,14 @@ const Consultation = () => {
   const location = useLocation();
   const consultationType = location.state?.type as "skin" | "hair";
 
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(-1);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [additionalNotes, setAdditionalNotes] = useState("");
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+    phone: ""
+  });
 
   const questions = consultationType === "skin" ? skinQuestions : hairQuestions;
 
@@ -321,145 +329,255 @@ const Consultation = () => {
   };
 
   const handleNext = () => {
-    if (currentStep < questions.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      navigate("/consultation-summary", { state: { type: consultationType, answers } });
-    }
-  };
+  if (currentStep === -1) {
+    setCurrentStep(0);
+  } else if (currentStep < questions.length - 1) {
+    setCurrentStep(currentStep + 1);
+  } else {
+    navigate("/consultation-summary", { 
+      state: { 
+        type: consultationType, 
+        answers,
+        userInfo,          
+      } 
+    });
+  }
+};
+
   
   const handleBack = () => {
-    if (currentStep > 0) {
+    if (currentStep > -1) {
       setCurrentStep(currentStep - 1);
     } else {
       navigate("/");
     }
   };
 
-  const currentQuestion = questions[currentStep];
-  const isAnswered = currentQuestion.multiSelect
-    ? Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as string[]).length > 0
-    : !!answers[currentQuestion.id];
+   // Check if user info is complete
+  const isUserInfoComplete = userInfo.name.trim() !== "" && 
+                             userInfo.email.trim() !== "" && 
+                             userInfo.phone.trim() !== "";
 
-  const showSectionHeader = currentQuestion.sectionIcon;
+  // For question steps
+  const currentQuestion = currentStep >= 0 ? questions[currentStep] : null;
+  const isAnswered = currentQuestion ? (currentQuestion.multiSelect 
+    ? Array.isArray(answers[currentQuestion.id]) && (answers[currentQuestion.id] as string[]).length > 0
+    : !!answers[currentQuestion.id]) : false;
+  
+  const showSectionHeader = currentQuestion?.sectionIcon;
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-hero flex flex-col">
+      <Header />
+      <div className="container mx-auto px-4 flex-1 flex items-center justify-center py-8">
+        <div className="w-full max-w-3xl">
           <Button
             variant="ghost"
             onClick={handleBack}
-            className="mb-8"
+            className="mb-6"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
 
-          <Card className="p-8 shadow-medium">
-            {showSectionHeader && (
-              <div className="mb-6">
-                <Badge className="bg-gradient-primary mb-2">
-                  <Sparkles className="w-3 h-3 mr-1" />
-                  {currentQuestion.sectionIcon} {currentQuestion.section}
-                </Badge>
-              </div>
-            )}
+          <Card className="p-6 shadow-medium flex flex-col max-h-[85vh]">
+            {currentStep === -1 ? (
+              // User Info Step
+              <>
+                <div className="mb-4">
+                  <Badge className="bg-gradient-primary mb-2">
+                    <Sparkles className="w-3 h-3 mr-1" />
+                    Your Information
+                  </Badge>
+                </div>
 
-            <div className="mb-8">
-              <div className="flex justify-between items-center mb-4">
-                <span className="text-sm text-muted-foreground">
-                  Question {currentStep + 1} of {questions.length}
-                </span>
-                <span className="text-sm font-medium text-primary capitalize">
-                  🌿 Ru & Ri – {consultationType} Concern Quiz
-                </span>
-              </div>
-              <div className="h-2 bg-muted rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-primary transition-all duration-500"
-                  style={{ width: `${((currentStep + 1) / questions.length) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            <h2 className="text-3xl font-bold mb-8 text-foreground">
-              {currentQuestion.question}
-            </h2>
-
-            {currentQuestion.multiSelect ? (
-              <div className="space-y-4">
-                {currentQuestion.options.map((option) => {
-                  const selectedOptions = (answers[currentQuestion.id] as string[]) || [];
-                  const isChecked = selectedOptions.includes(option);
-
-                  return (
-                    <div
-                      key={option}
-                      className={`flex items-center space-x-3 p-4 rounded-lg border-2 transition-all cursor-pointer ${isChecked ? "border-primary bg-primary/5" : "border-border hover:border-primary"
-                        }`}
-                    >
-                      <Checkbox
-                        id={option}
-                        checked={isChecked}
-                        onCheckedChange={(checked) =>
-                          handleMultiSelect(currentQuestion.id, option, checked as boolean)
-                        }
-                      />
-                      <Label
-                        htmlFor={option}
-                        className="flex-1 cursor-pointer text-base"
-                      >
-                        {option}
-                      </Label>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <RadioGroup
-                value={answers[currentQuestion.id] as string || ""}
-                onValueChange={(value) => handleAnswer(currentQuestion.id, value)}
-                className="space-y-4"
-              >
-                {currentQuestion.options.map((option) => (
-                  <div
-                    key={option}
-                    className="flex items-center  space-x-3 p-4 rounded-lg border-2 border-border hover:border-primary transition-all cursor-pointer"
-                  >
-                    <RadioGroupItem value={option} id={option} />
-                    <Label
-                      htmlFor={option}
-                      className="flex-1 cursor-pointer text-base"
-                    >
-                      {option}
-                    </Label>
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm text-muted-foreground">
+                      Step 1 of {questions.length + 1}
+                    </span>
+                    <span className="text-sm font-medium text-primary capitalize">
+                      🌿 Ru & Ri – {consultationType} Consultation
+                    </span>
                   </div>
-                ))}
-              </RadioGroup>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-primary transition-all duration-500"
+                      style={{ width: `${(1 / (questions.length + 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 flex flex-col min-h-0">
+                  <h2 className="text-xl font-bold mb-4 text-foreground flex-shrink-0">
+                    Let's start with your basic information
+                  </h2>
+
+                  <div className="flex-1 overflow-y-auto pr-2 -mr-2 mb-4">
+                    <div className="space-y-4 p-3">
+                      <div>
+                        <Label htmlFor="name" className="text-sm mb-2 block">
+                          Full Name *
+                        </Label>
+                        <Input
+                          id="name"
+                          placeholder="Enter your full name"
+                          value={userInfo.name}
+                          onChange={(e) => setUserInfo(prev => ({ ...prev, name: e.target.value }))}
+                          className="w-full "
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="email" className="text-sm mb-2 block">
+                          Email Address *
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email"
+                          value={userInfo.email}
+                          onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
+                          className="w-full"
+                        />
+                      </div>
+
+                      <div>
+                        <Label htmlFor="phone" className="text-sm mb-2 block">
+                          Phone Number *
+                        </Label>
+                        <Input
+                          id="phone"
+                          type="tel"
+                          placeholder="Enter your phone number"
+                          value={userInfo.phone}
+                          onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
+                          className="w-full"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleNext}
+                  disabled={!isUserInfoComplete}
+                  className="w-full bg-gradient-primary hover:opacity-90 transition-opacity flex-shrink-0"
+                  size="lg"
+                >
+                  Continue to Questions
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </>
+            ) : (
+              // Question Steps
+              <>
+                {showSectionHeader && (
+                  <div className="mb-4">
+                    <Badge className="bg-gradient-primary mb-2">
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      {currentQuestion!.sectionIcon} {currentQuestion!.section}
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-3">
+                    <span className="text-sm text-muted-foreground">
+                      Step {currentStep + 2} of {questions.length + 1}
+                    </span>
+                    <span className="text-sm font-medium text-primary capitalize">
+                      🌿 Ru & Ri – {consultationType} Concern Quiz
+                    </span>
+                  </div>
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-primary transition-all duration-500"
+                      style={{ width: `${((currentStep + 2) / (questions.length + 1)) * 100}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex-1 flex flex-col min-h-0">
+                  <h2 className="text-xl font-bold mb-4 text-foreground flex-shrink-0">
+                    {currentQuestion!.question}
+                  </h2>
+
+                  <div className="flex-1 overflow-y-auto pr-2 -mr-2 mb-4">
+                    {currentQuestion!.multiSelect ? (
+                      <div className="space-y-3">
+                        {currentQuestion!.options.map((option) => {
+                          const selectedOptions = (answers[currentQuestion!.id] as string[]) || [];
+                          const isChecked = selectedOptions.includes(option);
+                          
+                          return (
+                            <div
+                              key={option}
+                              className={`flex items-center space-x-3 p-3 rounded-lg border-2 transition-all cursor-pointer ${
+                                isChecked ? "border-primary bg-primary/5" : "border-border hover:border-primary"
+                              }`}
+                            >
+                              <Checkbox
+                                id={option}
+                                checked={isChecked}
+                                onCheckedChange={(checked) => 
+                                  handleMultiSelect(currentQuestion!.id, option, checked as boolean)
+                                }
+                              />
+                              <Label
+                                htmlFor={option}
+                                className="flex-1 cursor-pointer text-base"
+                              >
+                                {option}
+                              </Label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <RadioGroup
+                        value={answers[currentQuestion!.id] as string || ""}
+                        onValueChange={(value) => handleAnswer(currentQuestion!.id, value)}
+                        className="space-y-3"
+                      >
+                        {currentQuestion!.options.map((option) => (
+                          <div
+                            key={option}
+                            className="flex items-center space-x-3 p-3 rounded-lg border-2 border-border hover:border-primary transition-all cursor-pointer"
+                          >
+                            <RadioGroupItem value={option} id={option} />
+                            <Label
+                              htmlFor={option}
+                              className="flex-1 cursor-pointer text-base"
+                            >
+                              {option}
+                            </Label>
+                          </div>
+                        ))}
+                      </RadioGroup>
+                    )}
+
+                  
+                  </div>
+                </div>
+
+                <Button
+                  onClick={handleNext}
+                  disabled={!isAnswered}
+                  className="w-full bg-gradient-primary hover:opacity-90 transition-opacity flex-shrink-0"
+                  size="lg"
+                >
+                  {currentStep < questions.length - 1 ? (
+                    <>
+                      Continue
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </>
+                  ) : (
+                    "Continue"
+                  )}
+                </Button>
+              </>
             )}
-
-
-             
-
-            <Button
-              onClick={handleNext}
-              disabled={!isAnswered}
-              className="mt-8 w-full bg-gradient-primary hover:opacity-90 transition-opacity"
-              size="lg"
-            >
-              {currentStep < questions.length - 1 ? (
-                <>
-                  Continue
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              ) : (
-                <>
-                  Complete Consultation
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
           </Card>
         </div>
       </div>

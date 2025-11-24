@@ -214,7 +214,27 @@ const Terms = () => {
 
           <Card>
             <CardHeader>
-              <CardTitle>15. Contact Information</CardTitle>
+              <CardTitle>15. Payments to Consulting Gynecologists & Nutrition Experts</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground">
+                All consultation and service payments related to Ru & Ri must be made only through Ru & Ri’s official
+                payment channels. If any client chooses to make a payment directly to a consulting gynecologist,
+                nutrition expert, or any other partner professional, Ru & Ri will not be responsible or liable for:
+                <br /><br />
+                • That payment<br />
+                • Any refund, dispute, or claim<br />
+                • Any concern arising from such independently arranged consultations or services
+                <br /><br />
+                This condition applies to all bookings and consultations made on or after 21 November 2025.
+              </p>
+            </CardContent>
+          </Card>
+
+
+          <Card>
+            <CardHeader>
+              <CardTitle>16. Contact Information</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">
