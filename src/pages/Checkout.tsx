@@ -18,14 +18,23 @@ const Checkout = () => {
     }, 2000);
   };
 
-  const servicesIncluded = [
-    "Comprehensive consultation with Professional ",
-    "Personalized treatment plan tailored to your needs",
-    "Follow-up care and progress monitoring",
-    "Email support throughout your treatment",
-    "Access to exclusive skincare resources",
-    "Product recommendations and guidance"
-  ];
+  const servicesIncluded = type === "hair" 
+  ? [
+      "Comprehensive consultation with Professional",
+      "Personalized hair treatment plan tailored to your needs",
+      "Follow-up care and hair progress monitoring",
+      "Email support throughout your treatment",
+      "Access to exclusive haircare resources",
+      "Hair product recommendations and guidance"
+    ]
+  : [
+      "Comprehensive consultation with Professional",
+      "Personalized skin treatment plan tailored to your needs",
+      "Follow-up care and skin progress monitoring",
+      "Email support throughout your treatment",
+      "Access to exclusive skincare resources",
+      "Skincare product recommendations and guidance"
+    ];
 
   return (
     <div className="min-h-screen bg-gradient-hero">

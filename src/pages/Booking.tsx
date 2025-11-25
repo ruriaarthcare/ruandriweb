@@ -150,15 +150,12 @@ const Booking = () => {
               </Card>
 
               <Card className="p-6 bg-gradient-primary text-primary-foreground shadow-soft">
-                <h4 className="font-semibold mb-3">What to Expect:</h4>
+                <h4 className="font-semibold mb-3">Consultation Details</h4>
                 <ul className="space-y-2 text-sm">
                   <li><strong>Duration:</strong> 15–20 minutes</li>
                   <li><strong>Format:</strong> Zoom call</li>
                   <li><strong>Includes:</strong></li>
-                  <li className="ml-4">• Comprehensive {type} analysis</li>
-                  <li className="ml-4">• Personalized treatment plans</li>
-                  <li className="ml-4">• Expert dermatologist consultation</li>
-                  <li className="ml-4">• Follow-up care included</li>
+                  <li className="ml-4">• Personalised skin or hair wellness guidance</li>
                   <li className="ml-4">• Nutrition support based on your concerns</li>
                   <li className="ml-4">• First gynecologist consultation is complimentary</li>
                 </ul>

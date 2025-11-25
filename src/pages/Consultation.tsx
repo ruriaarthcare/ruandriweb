@@ -179,122 +179,122 @@ const hairQuestions: Question[] = [
       "Enhance shine and softness"
     ]
   },
-  // {
-  //   id: "scalpType",
-  //   section: "Section 1: Hair Goals & Concerns",
-  //   question: "How would you describe your scalp type?",
-  //   options: ["Dry / itchy", "Oily / greasy", "Normal / balanced", "Sensitive"]
-  // },
-  // {
-  //   id: "hairTexture",
-  //   section: "Section 1: Hair Goals & Concerns",
-  //   question: "How would you describe your hair texture?",
-  //   options: ["Straight", "Wavy", "Curly", "Coily"]
-  // },
-  // {
-  //   id: "hairIssues",
-  //   section: "Section 1: Hair Goals & Concerns",
-  //   question: "Do you experience any of the following? (You can select more than one)",
-  //   multiSelect: true,
-  //   options: [
-  //     "Split ends",
-  //     "Thinning / reduced density",
-  //     "Premature greying",
-  //     "Dandruff / flaking",
-  //     "Hair breakage",
-  //     "Slow growth"
-  //   ]
-  // },
-  // // Section 2: Lifestyle & Habits
-  // {
-  //   id: "washFrequency",
-  //   section: "Section 2: Lifestyle & Habits",
-  //   sectionIcon: "✨",
-  //   question: "How often do you wash your hair?",
-  //   options: ["Daily", "Every 2–3 days", "Once a week", "Less often"]
-  // },
-  // {
-  //   id: "heatChemical",
-  //   section: "Section 2: Lifestyle & Habits",
-  //   question: "Do you regularly use heat or chemical treatments?",
-  //   options: [
-  //     "Yes, often (straightening, coloring, perming, etc.)",
-  //     "Sometimes",
-  //     "Rarely",
-  //     "Never"
-  //   ]
-  // },
-  // {
-  //   id: "diet",
-  //   section: "Section 2: Lifestyle & Habits",
-  //   question: "Which best describes your diet? 🌿",
-  //   options: [
-  //     "Vegetarian",
-  //     "Vegan",
-  //     "Non-vegetarian",
-  //     "Eggetarian",
-  //     "Plant-based, mostly",
-  //     "No specific pattern / mixed diet"
-  //   ]
-  // },
-  // {
-  //   id: "waterIntake",
-  //   section: "Section 2: Lifestyle & Habits",
-  //   question: "How much water do you drink daily? 💧",
-  //   options: ["Less than 1 litre", "1–2 litres", "More than 2 litres"]
-  // },
-  // // Section 3: Wellness & Safety
-  // {
-  //   id: "supplements",
-  //   section: "Section 3: Wellness & Safety",
-  //   sectionIcon: "✨",
-  //   question: "Do you take any supplements for hair health?",
-  //   options: ["Yes, regularly", "Sometimes", "No, never"]
-  // },
-  // {
-  //   id: "hormonal",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "Do you face any hormonal concerns that affect your hair?",
-  //   options: ["Yes (PCOS, thyroid, menopause, etc.)", "Not sure", "No"]
-  // },
-  // {
-  //   id: "pregnancy",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "Are you currently pregnant or breastfeeding?",
-  //   options: ["Yes", "No", "Planning pregnancy soon"]
-  // },
-  // {
-  //   id: "conditions",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "Do you have any known scalp conditions or allergies?",
-  //   options: ["Yes (psoriasis, dermatitis, ingredient allergies, etc.)", "No"]
-  // },
-  // {
-  //   id: "medication",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "Are you currently on any long-term medication (for hormones, thyroid, etc.)?",
-  //   options: ["Yes", "No"]
-  // },
-  // {
-  //   id: "stress",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "How would you describe your stress levels?",
-  //   options: ["Low", "Moderate", "High"]
-  // },
-  // {
-  //   id: "sleep",
-  //   section: "Section 3: Wellness & Safety",
-  //   question: "On average, how many hours of sleep do you get daily? 😴",
-  //   options: ["Less than 5 hours", "5–7 hours", "7–9 hours", "More than 9 hours"]
-  // },
-  // // Section 4: Your Ru & Ri Journey
-  // {
-  //   id: "hairCare",
-  //   section: "Section 4: Your Ru & Ri Journey",
-  //   sectionIcon: "✨",
-  //   question: "How often do you oil or treat your hair at home?",
-  //   options: ["Weekly", "Occasionally", "Rarely", "Never"]
-  // }
+  {
+    id: "scalpType",
+    section: "Section 1: Hair Goals & Concerns",
+    question: "How would you describe your scalp type?",
+    options: ["Dry / itchy", "Oily / greasy", "Normal / balanced", "Sensitive"]
+  },
+  {
+    id: "hairTexture",
+    section: "Section 1: Hair Goals & Concerns",
+    question: "How would you describe your hair texture?",
+    options: ["Straight", "Wavy", "Curly", "Coily"]
+  },
+  {
+    id: "hairIssues",
+    section: "Section 1: Hair Goals & Concerns",
+    question: "Do you experience any of the following? (You can select more than one)",
+    multiSelect: true,
+    options: [
+      "Split ends",
+      "Thinning / reduced density",
+      "Premature greying",
+      "Dandruff / flaking",
+      "Hair breakage",
+      "Slow growth"
+    ]
+  },
+  // Section 2: Lifestyle & Habits
+  {
+    id: "washFrequency",
+    section: "Section 2: Lifestyle & Habits",
+    sectionIcon: "✨",
+    question: "How often do you wash your hair?",
+    options: ["Daily", "Every 2-3 days", "Once a week", "Less often"]
+  },
+  {
+    id: "heatChemical",
+    section: "Section 2: Lifestyle & Habits",
+    question: "Do you regularly use heat or chemical treatments?",
+    options: [
+      "Yes, often (straightening, coloring, perming, etc.)",
+      "Sometimes",
+      "Rarely",
+      "Never"
+    ]
+  },
+  {
+    id: "diet",
+    section: "Section 2: Lifestyle & Habits",
+    question: "Which best describes your diet? 🌿",
+    options: [
+      "Vegetarian",
+      "Vegan",
+      "Non-vegetarian",
+      "Eggetarian",
+      "Plant-based, mostly",
+      "No specific pattern / mixed diet"
+    ]
+  },
+  {
+    id: "waterIntake",
+    section: "Section 2: Lifestyle & Habits",
+    question: "How much water do you drink daily? 💧",
+    options: ["Less than 1 litre", "1-2 litres", "More than 2 litres"]
+  },
+  // Section 3: Wellness & Safety
+  {
+    id: "supplements",
+    section: "Section 3: Wellness & Safety",
+    sectionIcon: "✨",
+    question: "Do you take any supplements for hair health?",
+    options: ["Yes, regularly", "Sometimes", "No, never"]
+  },
+  {
+    id: "hormonal",
+    section: "Section 3: Wellness & Safety",
+    question: "Do you face any hormonal concerns that affect your hair?",
+    options: ["Yes (PCOS, thyroid, menopause, etc.)", "Not sure", "No"]
+  },
+  {
+    id: "pregnancy",
+    section: "Section 3: Wellness & Safety",
+    question: "Are you currently pregnant or breastfeeding?",
+    options: ["Yes", "No", "Planning pregnancy soon"]
+  },
+  {
+    id: "conditions",
+    section: "Section 3: Wellness & Safety",
+    question: "Do you have any known scalp conditions or allergies?",
+    options: ["Yes (psoriasis, dermatitis, ingredient allergies, etc.)", "No"]
+  },
+  {
+    id: "medication",
+    section: "Section 3: Wellness & Safety",
+    question: "Are you currently on any long-term medication (for hormones, thyroid, etc.)?",
+    options: ["Yes", "No"]
+  },
+  {
+    id: "stress",
+    section: "Section 3: Wellness & Safety",
+    question: "How would you describe your stress levels?",
+    options: ["Low", "Moderate", "High"]
+  },
+  {
+    id: "sleep",
+    section: "Section 3: Wellness & Safety",
+    question: "On average, how many hours of sleep do you get daily? 😴",
+    options: ["Less than 5 hours", "5-7 hours", "7-9 hours", "More than 9 hours"]
+  },
+  // Section 4: Your Ru & Ri Journey
+  {
+    id: "hairCare",
+    section: "Section 4: Your Ru & Ri Journey",
+    sectionIcon: "✨",
+    question: "How often do you oil or treat your hair at home?",
+    options: ["Weekly", "Occasionally", "Rarely", "Never"]
+  }
 ];
 
 const Consultation = () => {
@@ -353,10 +353,13 @@ const Consultation = () => {
     }
   };
 
-   // Check if user info is complete
-  const isUserInfoComplete = userInfo.name.trim() !== "" && 
-                             userInfo.email.trim() !== "" && 
-                             userInfo.phone.trim() !== "";
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(userInfo.email);
+    const isValidPhone = /^[0-9]{10}$/.test(userInfo.phone);
+
+    const isUserInfoComplete =
+      userInfo.name.trim() !== "" &&
+      isValidEmail &&
+      isValidPhone;
 
   // For question steps
   const currentQuestion = currentStep >= 0 ? questions[currentStep] : null;
@@ -437,24 +440,37 @@ const Consultation = () => {
                           type="email"
                           placeholder="Enter your email"
                           value={userInfo.email}
-                          onChange={(e) => setUserInfo(prev => ({ ...prev, email: e.target.value }))}
+                          onChange={(e) => setUserInfo((prev) => ({ ...prev, email: e.target.value }))}
                           className="w-full"
+                          required
                         />
                       </div>
 
                       <div>
-                        <Label htmlFor="phone" className="text-sm mb-2 block">
-                          Phone Number *
-                        </Label>
+                      <Label htmlFor="phone" className="text-sm mb-2 block">
+                        Phone Number *
+                      </Label>
+                      <div className="flex items-center">
+                        <span className="px-3 py-2 border border-border bg-muted rounded-l-md text-sm text-muted-foreground select-none">
+                          +91
+                        </span>
                         <Input
                           id="phone"
                           type="tel"
-                          placeholder="Enter your phone number"
+                          placeholder="Enter 10-digit phone number"
                           value={userInfo.phone}
-                          onChange={(e) => setUserInfo(prev => ({ ...prev, phone: e.target.value }))}
-                          className="w-full"
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, ""); // removes non-digits
+                            if (value.length <= 10) {
+                              setUserInfo((prev) => ({ ...prev, phone: value }));
+                            }
+                          }}
+                          className="w-full rounded-l-none"
+                          maxLength={10}
                         />
                       </div>
+                    </div>
+
                     </div>
                   </div>
                 </div>
