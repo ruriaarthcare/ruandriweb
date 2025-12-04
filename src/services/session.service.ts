@@ -7,8 +7,7 @@ export async function createSession() {
   const session = await createSessionApi();
 
   saveSession(session, );
-
-  console.log("Session Created:", session);
+  
   return session;
 }
 
