@@ -6,6 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Sparkles, CheckCircle } from "lucide-react";
 
+import { updateSession } from "@/services/session.service";
+
+
 const ConsultationSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -17,8 +20,19 @@ const ConsultationSummary = () => {
 
   const [additionalNotes, setAdditionalNotes] = useState("");
 
-  const handleContinue = () => {
-    navigate("/subscription", { state: { type, answers, notes: additionalNotes , userInfo } });
+  const handleContinue = async () => {
+      if (additionalNotes.trim() !== "") {
+    await updateSession("additionalNotes", additionalNotes);
+  }
+
+  navigate("/subscription", { 
+    state: { 
+      type, 
+      answers, 
+      notes: additionalNotes,
+      userInfo
+    } 
+  });
   };
 
   const handleBack = () => {

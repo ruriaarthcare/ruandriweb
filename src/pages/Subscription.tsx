@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Check, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 
+import { updateSession } from "@/services/session.service";
+
+
 interface PlanFeatures {
   duration: string;
   price: string;
@@ -99,22 +102,42 @@ const Subscription = () => {
   const location = useLocation();
   const { type, answers, notes, userInfo } = location.state || {};
 
-  const handleSelectPlan = (plan: PlanFeatures) => {
-    navigate("/booking", {
-      state: {
-        type,
-        answers,
-        notes,
-        userInfo,
-        plan: {
-          duration: plan.duration,
-          price: plan.price,
-          description: type === "skin" ? plan.skinDescription : plan.hairDescription,
-          discount: plan.discount
-        }
-      }
-    });
-  };
+  const handleSelectPlan = async (plan: PlanFeatures) => {
+  const baseAmount = parseInt(plan.price.replace(/[₹,]/g, ""));
+  const discountedAmount = plan.discount
+    ? baseAmount - plan.discount
+    : baseAmount;
+
+  // Store inside data.subscription.*
+  await updateSession("subscription.duration", plan.duration);
+  await updateSession("subscription.amount", baseAmount);
+  await updateSession("subscription.discountedAmount", discountedAmount);
+  await updateSession("subscription.discount", plan.discount || 0);
+  await updateSession("subscription.monthlyPrice", parseInt(plan.monthlyPrice.replace(/[₹,]/g, "")));
+  
+  await updateSession(
+    "subscription.description",
+    type === "skin" ? plan.skinDescription : plan.hairDescription
+  );
+
+  navigate("/booking", {
+    state: {
+      type,
+      answers,
+      notes,
+      userInfo,
+      plan: {
+        duration: plan.duration,
+        price: plan.price,
+        description:
+          type === "skin" ? plan.skinDescription : plan.hairDescription,
+        discount: plan.discount,
+      },
+    },
+  });
+};
+
+
 
   return (
     <div className="min-h-screen bg-gradient-hero">

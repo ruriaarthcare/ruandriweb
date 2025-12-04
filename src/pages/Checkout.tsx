@@ -6,17 +6,51 @@ import { ArrowLeft, Check, Calendar as CalendarIcon, Clock, Mail, Phone, User } 
 import { toast } from "sonner";
 import Header from "@/components/Header";
 
+import { updateSession } from "@/services/session.service";
+
+
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { type, plan, userInfo, selectedDate, selectedTime } = location.state || {};
 
-  const handleConfirmBooking = () => {
-    toast.success("Booking confirmed! We'll send you a confirmation email shortly.");
-    setTimeout(() => {
-      navigate("/");
-    }, 2000);
-  };
+
+
+    function formatDate(date: Date) {
+      const day = String(date.getDate()).padStart(2, "0");
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+ const handleConfirmBooking = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (!selectedDate || !selectedTime) {
+    toast.error("Please select a date and time for your consultation");
+    return;
+  }
+
+  try {
+    // FORMAT DATE as dd-mm-yyyy
+    const formattedDate = formatDate(selectedDate);
+
+    // SAVE DATE & TIME INTO SESSION
+    await updateSession("booking.date", formattedDate);
+    await updateSession("booking.time", selectedTime);
+
+    toast.success("Booking details saved!");
+
+    // MOVE TO CHECKOUT PAGE
+    navigate("/success", {
+      state: { type, plan, userInfo, selectedDate, selectedTime }
+    });
+
+  } catch (err) {
+    console.error("Booking session save failed:", err);
+    toast.error("Something went wrong while saving booking.");
+  }
+};
 
   const servicesIncluded = type === "hair" 
   ? [

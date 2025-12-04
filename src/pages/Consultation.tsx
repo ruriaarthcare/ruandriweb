@@ -9,7 +9,8 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
-import { Textarea } from "@/components/ui/textarea";
+
+import { updateSession } from "@/services/session.service";
 
 interface Question {
   id: string;
@@ -328,19 +329,54 @@ const Consultation = () => {
     });
   };
 
-  const handleNext = () => {
-  if (currentStep === -1) {
-    setCurrentStep(0);
-  } else if (currentStep < questions.length - 1) {
-    setCurrentStep(currentStep + 1);
-  } else {
-    navigate("/consultation-summary", { 
-      state: { 
-        type: consultationType, 
-        answers,
-        userInfo,          
-      } 
-    });
+  const handleNext = async () => {
+  try {
+    // Step -1 (User info step)
+    if (currentStep === -1) {
+      // Save user personal details inside userDATA map
+      await updateSession("userData.name", userInfo.name);
+      await updateSession("userData.email", userInfo.email);
+      await updateSession("userData.phone", userInfo.phone);
+
+      // advance to first question
+      setCurrentStep(0);
+      return;
+    }
+
+    // Question steps: currentStep 0 => Q1, 1 => Q2, ...
+    if (currentStep <= questions.length - 1) {
+      const q = currentQuestion!;
+      const answerValue = answers[q.id];
+
+      // Compute Q key. currentStep 0 => Q1
+      const qKey = `Q${currentStep + 1}`;
+
+      // For multiSelect, ensure array; else pass string
+      const payload = currentQuestion!.multiSelect
+        ? (Array.isArray(answerValue) ? answerValue : [])
+        : (answerValue ?? "");
+
+      await updateSession(qKey, payload);
+
+      // move to next question or finish
+      if (currentStep < questions.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        // final question answered -> go to summary
+        navigate("/consultation-summary", {
+          state: {
+            type: consultationType,
+            answers,
+            userInfo,
+          },
+        });
+      }
+      return;
+    }
+
+  } catch (err) {
+    console.error("Failed to save to session:", err);
+    // Optional: show toast to user
   }
 };
 

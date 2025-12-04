@@ -6,11 +6,27 @@ import heroImage from "@/assets/hero-image.jpg";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
+import { createSession, validateSession } from "@/services/session.service";
+import { updateSession } from "@/services/session.service";
+import { getSession } from "@/utils/session.storage";
+
+
 const Index = () => {
   const navigate = useNavigate();
 
-  const handleConsultation = (type: "skin" | "hair") => {
-    navigate("/consultation", { state: { type } });
+  const handleConsultation = async (type: "skin" | "hair") => {
+    let session = getSession();
+
+  // 1. Create new session if not exists
+  if (!session) {
+    session = await createSession();
+  }
+
+  // 2. Update session with chosen type
+  await updateSession("type", type);
+
+  // 3. Navigate to the consultation flow
+  navigate("/consultation", { state: { type } });
   };
 
   return (
