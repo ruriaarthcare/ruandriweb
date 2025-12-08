@@ -20,6 +20,8 @@ import NotFound from "./pages/NotFound";
 import ScrollToTop from "./components/ScrollToTop";
 import Checkout from "./pages/Checkout";
 import Success from "./pages/Success";
+import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // 🔥 IMPORT SESSION SERVICE
 import { createSession, validateSession } from "@/services/session.service";
@@ -64,6 +66,8 @@ const App = () => {
             <Route path="/faq" element={<FAQ />} />
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/success" element={<Success />} />
+            <Route path="/admin" element={<AdminLogin />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />

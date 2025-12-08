@@ -41,6 +41,9 @@ const Footer = () => {
               <Link to="/feedback" className="text-sm text-muted-foreground hover:text-primary transition-colors">
                 Feedback
               </Link>
+              <Link to="/admin" className="text-xs text-muted-foreground/50 hover:text-muted-foreground transition-colors">
+                •
+              </Link>
             </nav>
           </div>
 
