@@ -22,6 +22,7 @@ import Checkout from "./pages/Checkout";
 import Success from "./pages/Success";
 import AdminLogin from "./pages/AdminLogin";
 import AdminDashboard from "./pages/AdminDashboard";
+import ProtectedAdminRoute from "./components/ProtectedAdminRoute";
 
 // 🔥 IMPORT SESSION SERVICE
 import { createSession, validateSession } from "@/services/session.service";
@@ -67,8 +68,15 @@ const App = () => {
             <Route path="/feedback" element={<Feedback />} />
             <Route path="/success" element={<Success />} />
             <Route path="/admin" element={<AdminLogin />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
 
+            <Route
+              path="/admin/dashboard"
+              element={
+                <ProtectedAdminRoute>
+                  <AdminDashboard />
+                </ProtectedAdminRoute>
+              }
+/>
             {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>

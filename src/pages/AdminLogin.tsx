@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Lock, Mail } from "lucide-react";
+import { signInWithEmailAndPassword,onAuthStateChanged  } from "firebase/auth";
+import { auth } from "@/firebase";
 
-const ADMIN_EMAIL = "admin@ruandri.com";
-const ADMIN_PASSWORD = "admin123";
+
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -16,23 +17,33 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
 
-    // Simulate login delay
-    setTimeout(() => {
-      if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-        localStorage.setItem("adminAuth", "true");
-        localStorage.setItem("adminEmail", email);
-        toast.success("Welcome back, Admin!");
-        navigate("/admin/dashboard");
-      } else {
-        toast.error("Invalid credentials. Please try again.");
-      }
-      setIsLoading(false);
-    }, 500);
-  };
+  useEffect(() => {
+  const unsub = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  });
+
+  return () => unsub();
+}, [navigate]);
+
+
+  const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setIsLoading(true);
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    toast.success("Welcome back!");
+    // navigation handled by auth listener
+     navigate("/admin/dashboard", { replace: true });
+  } catch (error: any) {
+    toast.error(error.message || "Login failed");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-hero flex items-center justify-center p-4">
@@ -58,6 +69,7 @@ const AdminLogin = () => {
                 placeholder="admin@ruandri.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 className="pl-10"
                 required
               />
@@ -74,6 +86,7 @@ const AdminLogin = () => {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 className="pl-10"
                 required
               />

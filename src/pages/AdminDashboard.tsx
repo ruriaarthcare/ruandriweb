@@ -44,184 +44,62 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { signOut } from "firebase/auth";
+import { auth } from "@/firebase";
+import { Booking } from "@/models/booking.model";
+import { fetchAdminBookings } from "@/services/admin.service";
 
-interface QuestionAnswer {
-  question: string;
-  answer: string | string[];
-}
-
-interface Booking {
-  id: string;
-  userInfo: {
-    name: string;
-    email: string;
-    phone: string;
-  };
-  type: string;
-  plan: {
-    duration: string;
-    price: string;
-    discount?: number;
-  };
-  selectedDate: string;
-  selectedTime: string;
-  createdAt: string;
-  questionnaire?: QuestionAnswer[];
-}
 
 type DownloadOption = "all" | "userData" | "subscription" | "questionnaire";
 type TabOption = "all" | "todayBookings" | "todaySessions";
 
-const sampleBookings: Booking[] = [
-  {
-    id: "bk-001-sample",
-    userInfo: { name: "Priya Sharma", email: "priya.sharma@email.com", phone: "+91 98765 43210" },
-    type: "skin",
-    plan: { duration: "6 Months", price: "₹12,000", discount: 2000 },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "10:00 AM",
-    createdAt: new Date().toISOString(),
-    questionnaire: [
-      { question: "What are your primary skin goals?", answer: ["Reduce acne", "Even skin tone"] },
-      { question: "What is your skin type?", answer: "Combination" },
-      { question: "Do you have any known allergies?", answer: "No known allergies" },
-      { question: "How much water do you drink daily?", answer: "2-3 liters" },
-    ],
-  },
-  {
-    id: "bk-002-sample",
-    userInfo: { name: "Ananya Patel", email: "ananya.p@email.com", phone: "+91 87654 32109" },
-    type: "hair",
-    plan: { duration: "3 Months", price: "₹7,000", discount: 1000 },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "2:00 PM",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    questionnaire: [
-      { question: "What is your primary hair goal?", answer: "Reduce hair fall" },
-      { question: "How often do you wash your hair?", answer: "Every other day" },
-      { question: "Do you use any hair treatments?", answer: "Occasional oiling" },
-    ],
-  },
-  {
-    id: "bk-003-sample",
-    userInfo: { name: "Kavitha Reddy", email: "kavitha.r@email.com", phone: "+91 76543 21098" },
-    type: "skin",
-    plan: { duration: "12 Months", price: "₹20,000", discount: 4000 },
-    selectedDate: new Date(Date.now() + 172800000).toISOString(),
-    selectedTime: "11:30 AM",
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-    questionnaire: [
-      { question: "What are your primary skin goals?", answer: ["Anti-aging", "Hydration"] },
-      { question: "What is your skin type?", answer: "Dry" },
-      { question: "Current skincare routine?", answer: "Basic cleansing and moisturizer" },
-      { question: "Any previous skin treatments?", answer: "Tried chemical peels before" },
-      { question: "How much sun exposure do you get?", answer: "Moderate, 1-2 hours daily" },
-    ],
-  },
-  {
-    id: "bk-004-sample",
-    userInfo: { name: "Meera Krishnan", email: "meera.k@email.com", phone: "+91 65432 10987" },
-    type: "hair",
-    plan: { duration: "1 Month", price: "₹2,500" },
-    selectedDate: new Date(Date.now() + 259200000).toISOString(),
-    selectedTime: "4:00 PM",
-    createdAt: new Date(Date.now() - 259200000).toISOString(),
-    questionnaire: [
-      { question: "What is your primary hair goal?", answer: "Improve hair texture" },
-      { question: "Describe your diet", answer: "Vegetarian, balanced diet" },
-      { question: "Any hormonal issues?", answer: "PCOS diagnosed" },
-    ],
-  },
-  {
-    id: "bk-005-sample",
-    userInfo: { name: "Deepika Nair", email: "deepika.n@email.com", phone: "+91 54321 09876" },
-    type: "skin",
-    plan: { duration: "3 Months", price: "₹7,000", discount: 1000 },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "3:30 PM",
-    createdAt: new Date().toISOString(),
-    questionnaire: [
-      { question: "What are your primary skin goals?", answer: ["Reduce dark spots", "Brightening"] },
-      { question: "What is your skin type?", answer: "Oily" },
-      { question: "Do you wear sunscreen daily?", answer: "Yes, SPF 30+" },
-    ],
-  },
-  {
-    id: "bk-006-sample",
-    userInfo: { name: "Lakshmi Iyer", email: "lakshmi.i@email.com", phone: "+91 43210 98765" },
-    type: "hair",
-    plan: { duration: "6 Months", price: "₹12,000", discount: 2000 },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "5:00 PM",
-    createdAt: new Date(Date.now() - 3600000).toISOString(),
-    questionnaire: [
-      { question: "What is your primary hair goal?", answer: "Add volume and thickness" },
-      { question: "Do you color your hair?", answer: "Yes, every 2 months" },
-      { question: "Any scalp issues?", answer: "Mild dandruff" },
-    ],
-  },
-  {
-    id: "bk-007-sample",
-    userInfo: { name: "Ritu Verma", email: "ritu.v@email.com", phone: "+91 32109 87654" },
-    type: "skin",
-    plan: { duration: "9 Months", price: "₹18,000" },
-    selectedDate: new Date(Date.now() + 86400000).toISOString(),
-    selectedTime: "9:00 AM",
-    createdAt: new Date(Date.now() - 7200000).toISOString(),
-    questionnaire: [
-      { question: "What are your primary skin goals?", answer: ["Reduce fine lines", "Firm skin"] },
-      { question: "What is your skin type?", answer: "Normal" },
-      { question: "Current products used?", answer: "Vitamin C serum, retinol at night" },
-    ],
-  },
-  {
-    id: "bk-008-sample",
-    userInfo: { name: "Sunita Gupta", email: "sunita.g@email.com", phone: "+91 21098 76543" },
-    type: "hair",
-    plan: { duration: "12 Months", price: "₹20,000", discount: 4000 },
-    selectedDate: new Date(Date.now() + 345600000).toISOString(),
-    selectedTime: "1:00 PM",
-    createdAt: new Date(Date.now() - 14400000).toISOString(),
-    questionnaire: [
-      { question: "What is your primary hair goal?", answer: "Control frizz and add shine" },
-      { question: "Hair washing frequency?", answer: "Twice a week" },
-      { question: "Heat styling usage?", answer: "Occasional blow drying" },
-    ],
-  },
-  {
-    id: "bk-009-sample",
-    userInfo: { name: "Neha Agarwal", email: "neha.a@email.com", phone: "+91 10987 65432" },
-    type: "skin",
-    plan: { duration: "1 Month", price: "₹2,500" },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "11:00 AM",
-    createdAt: new Date(Date.now() - 28800000).toISOString(),
-    questionnaire: [
-      { question: "What are your primary skin goals?", answer: ["Clear blackheads", "Minimize pores"] },
-      { question: "What is your skin type?", answer: "Combination" },
-      { question: "Any sensitivities?", answer: "Sensitive to fragrance" },
-    ],
-  },
-  {
-    id: "bk-010-sample",
-    userInfo: { name: "Pooja Mehta", email: "pooja.m@email.com", phone: "+91 09876 54321" },
-    type: "hair",
-    plan: { duration: "3 Months", price: "₹7,000", discount: 1000 },
-    selectedDate: new Date().toISOString(),
-    selectedTime: "6:00 PM",
-    createdAt: new Date(Date.now() - 43200000).toISOString(),
-    questionnaire: [
-      { question: "What is your primary hair goal?", answer: "Strengthen weak hair" },
-      { question: "Recent hair changes?", answer: "Post-pregnancy hair fall" },
-      { question: "Diet supplements?", answer: "Taking biotin" },
-    ],
-  },
-];
-
 const ITEMS_PER_PAGE = 10;
+
+//Skin question
+const SKIN_QUESTION_LABELS: Record<string, string> = {
+  Q1: "Q1. What is your primary skin goal?",
+  Q2: "Q2. How does your skin usually feel after cleansing?",
+  Q3: "Q3. How often do you experience breakouts?",
+  Q4: "Q4. Do you experience any of the following skin concerns?",
+  Q5: "Q5. How much sun exposure do you usually get?",
+  Q6: "Q6. How would you describe your lifestyle?",
+  Q7: "Q7. Which best describes your diet?",
+  Q8: "Q8. How much water do you drink daily?",
+  Q9: "Q9. Do you take any supplements for skin health?",
+  Q10: "Q10. Any hormonal concerns that affect your skin?",
+  Q11: "Q11. Are you currently pregnant or breastfeeding?",
+  Q12: "Q12. Do you have any known skin conditions or allergies?",
+  Q13: "Q13. Are you currently on any long-term medication?",
+  Q14: "Q14. How would you describe your stress levels?",
+  Q15: "Q15. On average, how many hours of sleep do you get daily?",
+  Q16: "Q16. How often do you follow a skincare routine?",
+};
+
+//Hair  Question 
+const HAIR_QUESTION_LABELS: Record<string, string> = {
+  Q1: "Q1. What is your primary hair goal?",
+  Q2: "Q2. How would you describe your scalp type?",
+  Q3: "Q3. How would you describe your hair texture?",
+  Q4: "Q4. Do you experience any of the following hair concerns?",
+  Q5: "Q5. How often do you wash your hair?",
+  Q6: "Q6. Do you regularly use heat or chemical treatments?",
+  Q7: "Q7. Which best describes your diet?",
+  Q8: "Q8. How much water do you drink daily?",
+  Q9: "Q9. Do you take any supplements for hair health?",
+  Q10: "Q10. Do you face any hormonal concerns that affect your hair?",
+  Q11: "Q11. Are you currently pregnant or breastfeeding?",
+  Q12: "Q12. Do you have any known scalp conditions or allergies?",
+  Q13: "Q13. Are you currently on any long-term medication?",
+  Q14: "Q14. How would you describe your stress levels?",
+  Q15: "Q15. On average, how many hours of sleep do you get daily?",
+  Q16: "Q16. How often do you oil or treat your hair at home?",
+};
+
+
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
@@ -232,33 +110,37 @@ const AdminDashboard = () => {
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [pendingDownload, setPendingDownload] = useState<Booking | null>(null);
 
-  useEffect(() => {
-    const isAuth = localStorage.getItem("adminAuth");
-    if (!isAuth) {
-      navigate("/admin");
-      return;
-    }
-    loadBookings();
-  }, [navigate]);
-
-  const loadBookings = () => {
-    const savedBookings = localStorage.getItem("bookings");
-    if (savedBookings) {
-      const parsed = JSON.parse(savedBookings);
-      const sampleIds = sampleBookings.map((b) => b.id);
-      const filteredSaved = parsed.filter((b: Booking) => !sampleIds.includes(b.id));
-      setBookings([...sampleBookings, ...filteredSaved]);
+ useEffect(() => {
+  const unsub = auth.onAuthStateChanged((user) => {
+    if (!user) {
+      navigate("/admin", { replace: true });
     } else {
-      setBookings(sampleBookings);
+      fetchBookings();
     }
-  };
+  });
 
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth");
-    localStorage.removeItem("adminEmail");
-    toast.success("Logged out successfully");
-    navigate("/admin");
-  };
+  return () => unsub();
+}, [navigate]);
+
+
+  const fetchBookings = async () => {
+  try {
+    setLoading(true);
+    const data = await fetchAdminBookings();
+    setBookings(data);
+  } catch (err) {
+    toast.error("Failed to load bookings");
+  } finally {
+    setLoading(false);
+  }
+};
+
+//Logout
+  const handleLogout = async () => {
+  await signOut(auth);
+  toast.success("Logged out");
+  navigate("/admin");
+};
 
   const handleViewBooking = (booking: Booking) => {
     setSelectedBooking(booking);
@@ -278,9 +160,9 @@ const AdminDashboard = () => {
     if (includeAll || downloadOption === "userData") {
       const userData = [
         ["Field", "Value"],
-        ["Name", booking.userInfo.name],
-        ["Email", booking.userInfo.email],
-        ["Phone", booking.userInfo.phone],
+        ["Name", booking.userData.name],
+        ["Email", booking.userData.email],
+        ["Phone", booking.userData.phone],
       ];
       const wsUser = XLSX.utils.aoa_to_sheet(userData);
       XLSX.utils.book_append_sheet(workbook, wsUser, "User Data");
@@ -289,27 +171,27 @@ const AdminDashboard = () => {
     if (includeAll || downloadOption === "subscription") {
       const subscriptionData = [
         ["Field", "Value"],
-        ["Type", booking.type],
-        ["Plan", booking.plan.duration],
-        ["Amount", booking.plan.price],
-        ["Date", new Date(booking.selectedDate).toLocaleDateString()],
-        ["Time", booking.selectedTime],
+        ["Type", booking.subscription.type],
+        ["Plan", booking.subscription.duration],
+        ["Amount", booking.subscription.amount],
+        ["Date", new Date(booking.appointment.date).toLocaleDateString()],
+        ["Time", booking.appointment.date],
       ];
       const wsSub = XLSX.utils.aoa_to_sheet(subscriptionData);
       XLSX.utils.book_append_sheet(workbook, wsSub, "Subscription");
     }
 
-    if ((includeAll || downloadOption === "questionnaire") && booking.questionnaire) {
+    if ((includeAll || downloadOption === "questionnaire") ) {
       const qaData = [["Question", "Answer"]];
-      booking.questionnaire.forEach((qa) => {
-        const answer = Array.isArray(qa.answer) ? qa.answer.join(", ") : qa.answer;
-        qaData.push([qa.question, answer]);
-      });
+      Object.entries(booking.data).forEach(([key, value]) => {
+    if (key === "additionalNotes") return;
+    qaData.push([key, value]);
+  });
       const wsQA = XLSX.utils.aoa_to_sheet(qaData);
       XLSX.utils.book_append_sheet(workbook, wsQA, "Questionnaire");
     }
 
-    XLSX.writeFile(workbook, `booking-${booking.userInfo.name.replace(/\s+/g, "_")}-${booking.id.slice(0, 8)}.xlsx`);
+    XLSX.writeFile(workbook, `booking-${booking.userData.name.replace(/\s+/g, "_")}-${booking.id.slice(0, 8)}.xlsx`);
     toast.success("Downloaded as Excel");
   };
 
@@ -319,13 +201,13 @@ const AdminDashboard = () => {
     const headers = ["ID", "Name", "Email", "Phone", "Type", "Plan", "Date", "Time", "Created"];
     const data = filteredBookings.map((b) => [
       b.id,
-      b.userInfo.name,
-      b.userInfo.email,
-      b.userInfo.phone,
-      b.type,
-      b.plan.duration,
-      new Date(b.selectedDate).toLocaleDateString(),
-      b.selectedTime,
+      b.userData.name,
+      b.userData.email,
+      b.userData.phone,
+      b.subscription.type,
+      b.subscription.duration,
+      new Date(b.appointment.date).toLocaleDateString(),
+      b.appointment.time,
       new Date(b.createdAt).toLocaleDateString(),
     ]);
 
@@ -339,13 +221,16 @@ const AdminDashboard = () => {
 
   // Calculate stats
   const totalRevenue = bookings.reduce((sum, b) => {
-    const price = parseInt(b.plan.price.replace(/[₹,]/g, "")) || 0;
-    return sum + price;
-  }, 0);
+  return sum + (b.subscription?.amount ?? 0);
+}, 0);
 
   const todayBookingsCount = bookings.filter(
-    (b) => new Date(b.selectedDate).toDateString() === new Date().toDateString()
-  ).length;
+  (b) =>
+    b.appointment?.date &&
+    new Date(b.appointment.date).toDateString() === new Date().toDateString()
+).length;
+
+
 
   // Filter bookings based on active tab
   const filteredBookings = bookings.filter((b) => {
@@ -353,12 +238,12 @@ const AdminDashboard = () => {
       return new Date(b.createdAt).toDateString() === new Date().toDateString();
     }
     if (activeTab === "todaySessions") {
-      return new Date(b.selectedDate).toDateString() === new Date().toDateString();
+      return new Date(b.appointment.date).toDateString() === new Date().toDateString();
     }
     return true;
   }).sort((a, b) => {
     if (activeTab === "todaySessions") {
-      return a.selectedTime.localeCompare(b.selectedTime);
+      return a.appointment.date.localeCompare(b.appointment.time);
     }
     return 0;
   });
@@ -369,6 +254,12 @@ const AdminDashboard = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
+
+  const parseDDMMYYYY = (dateStr: string) => {
+  const [day, month, year] = dateStr.split("-");
+  return new Date(Number(year), Number(month) - 1, Number(day));
+};
+
 
   // Reset page when tab changes
   useEffect(() => {
@@ -469,7 +360,7 @@ const AdminDashboard = () => {
             ))}
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={loadBookings}>
+            <Button variant="outline" onClick={fetchBookings}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -496,65 +387,73 @@ const AdminDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredBookings.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <p className="text-muted-foreground">No bookings found</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {activeTab === "todayBookings" && "No bookings made today"}
-                      {activeTab === "todaySessions" && "No sessions scheduled for today"}
-                      {activeTab === "all" && "Bookings will appear here when customers complete their checkout"}
-                    </p>
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedBookings.map((booking) => (
-                  <TableRow key={booking.id}>
-                    <TableCell>
-                      <div>
-                        <p className="font-medium text-foreground">{booking.userInfo.name}</p>
-                        <p className="text-xs text-muted-foreground">ID: {booking.id.slice(0, 8)}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <p className="text-sm text-foreground">{booking.userInfo.email}</p>
-                        <p className="text-xs text-muted-foreground">{booking.userInfo.phone}</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {booking.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{booking.plan.duration}</TableCell>
-                    <TableCell>
-                      <p className="text-sm text-foreground">
-                        {new Date(booking.selectedDate).toLocaleDateString("en-IN", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-foreground">{booking.selectedTime}</p>
-                    </TableCell>
-                    <TableCell className="font-semibold">{booking.plan.price}</TableCell>
-                    <TableCell>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewBooking(booking)}
-                      >
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
+          {loading ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-12">
+                Loading bookings...
+              </TableCell>
+            </TableRow>
+          ) : filteredBookings.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="text-center py-12">
+                <p className="text-muted-foreground">No bookings found</p>
+              </TableCell>
+            </TableRow>
+          ) : (
+            paginatedBookings.map((booking) => (
+              
+          <TableRow key={booking.id}>
+          <TableCell>
+            <div className="font-medium">
+              {booking.userData?.name || "Unknown"}
+            </div>
+          </TableCell>
+
+          <TableCell>
+            <div className="text-sm">
+              {booking.userData?.email || "—"}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {booking.userData?.phone || "—"}
+            </div>
+          </TableCell>
+
+          <TableCell>
+            <Badge variant="secondary" className="capitalize">
+              {booking.subscription?.type || "—"}
+            </Badge>
+          </TableCell>
+
+          <TableCell>{booking.subscription?.duration || "—"}</TableCell>
+
+          <TableCell>
+            {booking.appointment?.date
+              ? parseDDMMYYYY(booking.appointment.date).toLocaleDateString("en-IN")
+              : "—"}
+          </TableCell>
+
+          <TableCell>{booking.appointment?.time || "—"}</TableCell>
+
+          <TableCell className="font-semibold">
+            ₹{booking.subscription?.amount ?? 0}
+          </TableCell>
+
+          <TableCell>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => handleViewBooking(booking)}
+            >
+              View
+            </Button>
+          </TableCell>
+        </TableRow>
+
+        ))
+
+  )}
+</TableBody>
+
           </Table>
 
           {/* Pagination */}
@@ -607,15 +506,15 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Name</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userInfo.name}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.name}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userInfo.email}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.email}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userInfo.phone}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.phone}</p>
                   </div>
                 </div>
               </div>
@@ -626,76 +525,96 @@ const AdminDashboard = () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <p className="text-xs text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium capitalize text-foreground">{selectedBooking.type}</p>
+                    <p className="text-sm font-medium capitalize text-foreground">{selectedBooking.subscription.type}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Plan</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.plan.duration}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.subscription.duration}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Amount</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.plan.price}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.subscription.amount}</p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Date</p>
                     <p className="text-sm font-medium text-foreground">
-                      {new Date(selectedBooking.selectedDate).toLocaleDateString("en-IN", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {parseDDMMYYYY(selectedBooking.appointment.date).toLocaleDateString("en-IN")}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Time</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.selectedTime}</p>
+                    <p className="text-sm font-medium text-foreground">{selectedBooking.appointment.time}</p>
                   </div>
                 </div>
               </div>
 
               {/* Questionnaire Section */}
               <div className="space-y-3">
-                <h3 className="font-semibold text-foreground border-b pb-2">Questionnaire Responses</h3>
-                {selectedBooking.questionnaire && selectedBooking.questionnaire.length > 0 ? (
-                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                    {selectedBooking.questionnaire.map((qa, index) => (
-                      <div key={index} className="bg-muted/50 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">Q{index + 1}: {qa.question}</p>
+                <h3 className="font-semibold text-foreground border-b pb-2">
+                  Questionnaire Responses
+                </h3>
+
+                {selectedBooking.data ? (
+                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                  {Object.entries(selectedBooking.data)
+                    .filter(([key]) => key.startsWith("Q")) 
+                    .map(([key, value]) => (
+                      <div key={key} className="bg-muted/50 rounded-lg p-3">
+                        <p className="text-xs text-muted-foreground mb-1">
+                          {(selectedBooking.subscription.type === "skin"
+                            ? SKIN_QUESTION_LABELS
+                            : HAIR_QUESTION_LABELS)[key] ?? key}
+                        </p>
                         <p className="text-sm font-medium text-foreground">
-                          {Array.isArray(qa.answer) ? qa.answer.join(", ") : qa.answer}
+                          {Array.isArray(value) ? value.join(", ") : value || "—"}
                         </p>
                       </div>
                     ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">No questionnaire data available</p>
-                )}
-              </div>
+
+                  {/* Additional Notes */}
+                  {selectedBooking.data.additionalNotes && (
+                    <div className="bg-muted/50 rounded-lg p-3 border border-dashed">
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Additional Notes
+                      </p>
+                      <p className="text-sm font-medium text-foreground">
+                        {selectedBooking.data.additionalNotes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground italic">
+                  No questionnaire data available
+                </p>
+              )}
+            </div>
+
 
               {/* Download Options */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground border-b pb-2">Download Data</h3>
-                <div className="flex gap-2">
-                  <Select value={downloadOption} onValueChange={(v: DownloadOption) => setDownloadOption(v)}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select data to download" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Data</SelectItem>
-                      <SelectItem value="userData">User Data Only</SelectItem>
-                      <SelectItem value="subscription">Subscription Only</SelectItem>
-                      <SelectItem value="questionnaire">Questionnaire Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    className="bg-gradient-primary hover:opacity-90"
-                    onClick={() => handleDownloadClick(selectedBooking)}
-                  >
-                    <FileSpreadsheet className="w-4 h-4 mr-2" />
-                    Download Excel
-                  </Button>
+                <div className="space-y-3">
+                  <h3 className="font-semibold text-foreground border-b pb-2">Download Data</h3>
+                  <div className="flex gap-2">
+                    <Select value={downloadOption} onValueChange={(v: DownloadOption) => setDownloadOption(v)}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select data to download" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Data</SelectItem>
+                        <SelectItem value="userData">User Data Only</SelectItem>
+                        <SelectItem value="subscription">Subscription Only</SelectItem>
+                        <SelectItem value="questionnaire">Questionnaire Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      className="bg-gradient-primary hover:opacity-90"
+                      onClick={() => handleDownloadClick(selectedBooking)}
+                    >
+                      <FileSpreadsheet className="w-4 h-4 mr-2" />
+                      Download Excel
+                    </Button>
+                  </div>
                 </div>
-              </div>
             </div>
           )}
         </SheetContent>

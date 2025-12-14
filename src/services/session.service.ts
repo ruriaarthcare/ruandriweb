@@ -4,11 +4,23 @@ import { closeSessionApi } from "@/api/session.api";
 
 
 export async function createSession() {
-  const session = await createSessionApi();
 
-  saveSession(session, );
+  const existing = getSession();
   
-  return session;
+  if(existing){
+    return existing;
+  }
+
+  const newSession = await createSessionApi();
+
+  const sessionToSave = {
+    sessionId: newSession.sessionId,
+    sessionSecret: newSession.token, // token from backend
+  };
+
+  saveSession(sessionToSave);
+
+  return sessionToSave;
 }
 
 
@@ -50,6 +62,19 @@ export async function updateSession(key: string, value: any) {
 
   console.log("❌ Failed to update session");
   return false;
+}
+
+
+export async function loadSessionState() {
+  const session = getSession();
+  if (!session) return null; 
+
+  const res = await validateSessionApi(session.sessionId, session.sessionSecret);
+
+  if (!res.valid) return null;
+
+  return res.data; 
+
 }
 
 export async function closeSession() {
