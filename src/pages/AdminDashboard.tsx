@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -48,6 +49,7 @@ import { signOut } from "firebase/auth";
 import { auth } from "@/firebase";
 import { Booking } from "@/models/booking.model";
 import { fetchAdminBookings } from "@/services/admin.service";
+
 
 
 type DownloadOption = "all" | "userData" | "subscription" | "questionnaire";
@@ -153,71 +155,185 @@ const AdminDashboard = () => {
     setShowDownloadDialog(true);
   };
 
-  const downloadAsExcel = (booking: Booking) => {
-    const workbook = XLSX.utils.book_new();
-    const includeAll = downloadOption === "all";
 
-    if (includeAll || downloadOption === "userData") {
-      const userData = [
-        ["Field", "Value"],
-        ["Name", booking.userData.name],
-        ["Email", booking.userData.email],
-        ["Phone", booking.userData.phone],
-      ];
-      const wsUser = XLSX.utils.aoa_to_sheet(userData);
-      XLSX.utils.book_append_sheet(workbook, wsUser, "User Data");
-    }
+//Download the each booking 
+const downloadAsExcel = (booking: Booking) => {
+  const workbook = XLSX.utils.book_new();
+  const sheetData: any[][] = [];
 
-    if (includeAll || downloadOption === "subscription") {
-      const subscriptionData = [
-        ["Field", "Value"],
-        ["Type", booking.subscription.type],
-        ["Plan", booking.subscription.duration],
-        ["Amount", booking.subscription.amount],
-        ["Date", new Date(booking.appointment.date).toLocaleDateString()],
-        ["Time", booking.appointment.date],
-      ];
-      const wsSub = XLSX.utils.aoa_to_sheet(subscriptionData);
-      XLSX.utils.book_append_sheet(workbook, wsSub, "Subscription");
-    }
+  const isAll = downloadOption === "all";
 
-    if ((includeAll || downloadOption === "questionnaire") ) {
-      const qaData = [["Question", "Answer"]];
-      Object.entries(booking.data).forEach(([key, value]) => {
-    if (key === "additionalNotes") return;
-    qaData.push([key, value]);
-  });
-      const wsQA = XLSX.utils.aoa_to_sheet(qaData);
-      XLSX.utils.book_append_sheet(workbook, wsQA, "Questionnaire");
-    }
+  /* ================= USER DETAILS ================= */
+  if (isAll || downloadOption === "userData") {
+    sheetData.push(["USER DETAILS"]);
+    sheetData.push(["Field", "Value"]);
+    sheetData.push(["Name", booking.userData?.name || "-"]);
+    sheetData.push(["Email", booking.userData?.email || "-"]);
+    sheetData.push(["Phone", booking.userData?.phone || "-"]);
+    sheetData.push([]);
+  }
 
-    XLSX.writeFile(workbook, `booking-${booking.userData.name.replace(/\s+/g, "_")}-${booking.id.slice(0, 8)}.xlsx`);
-    toast.success("Downloaded as Excel");
-  };
-
-  const exportAllToExcel = () => {
-    const workbook = XLSX.utils.book_new();
-    
-    const headers = ["ID", "Name", "Email", "Phone", "Type", "Plan", "Date", "Time", "Created"];
-    const data = filteredBookings.map((b) => [
-      b.id,
-      b.userData.name,
-      b.userData.email,
-      b.userData.phone,
-      b.subscription.type,
-      b.subscription.duration,
-      new Date(b.appointment.date).toLocaleDateString(),
-      b.appointment.time,
-      new Date(b.createdAt).toLocaleDateString(),
+  /* ================= SUBSCRIPTION DETAILS ================= */
+  if (isAll || downloadOption === "subscription") {
+    sheetData.push(["SUBSCRIPTION DETAILS"]);
+    sheetData.push(["Type", booking.subscription?.type || "-"]);
+    sheetData.push(["Plan", booking.subscription?.duration || "-"]);
+    sheetData.push(["Amount", booking.subscription?.amount || "-"]);
+    sheetData.push([
+      "Appointment Date",
+      parseDDMMYYYY(booking.appointment.date).toLocaleDateString("en-IN"),
     ]);
+    sheetData.push(["Time", booking.appointment?.time || "-"]);
+    sheetData.push([]);
+  }
 
-    const wsData = [headers, ...data];
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(workbook, ws, "Bookings");
+  /* ================= QUESTIONNAIRE ================= */
+  if (isAll || downloadOption === "questionnaire") {
+    sheetData.push(["QUESTIONNAIRE"]);
 
-    XLSX.writeFile(workbook, `bookings-${new Date().toISOString().split("T")[0]}.xlsx`);
-    toast.success("Bookings exported as Excel");
-  };
+    const isHair = booking.subscription?.type === "hair";
+    const questionLabels = isHair
+      ? HAIR_QUESTION_LABELS
+      : SKIN_QUESTION_LABELS;
+
+    Object.entries(booking.data || {}).forEach(([key, value]) => {
+      if (!key.startsWith("Q")) return;
+      if (key === "additionalNotes") return;
+
+      const question = questionLabels[key] || key;
+      sheetData.push([question, String(value)]);
+    });
+  }
+
+  /* ================= CREATE SHEET ================= */
+  const ws = XLSX.utils.aoa_to_sheet(sheetData);
+  ws["!cols"] = [{ wch: 30 }, { wch: 45 }];
+
+  /* ================= MERGE + STYLE HEADINGS ================= */
+  const merges: XLSX.Range[] = [];
+
+  sheetData.forEach((row, index) => {
+    if (
+      row[0] === "USER DETAILS" ||
+      row[0] === "SUBSCRIPTION DETAILS" ||
+      row[0] === "QUESTIONNAIRE"
+    ) {
+      merges.push({
+        s: { r: index, c: 0 },
+        e: { r: index, c: 1 },
+      });
+
+      const cell = ws[XLSX.utils.encode_cell({ r: index, c: 0 })];
+      if (cell) {
+        cell.s = {
+          font: { bold: true, sz: 14 },
+          alignment: { horizontal: "center", vertical: "center" },
+          fill: { fgColor: { rgb: "E9ECEF" } },
+        };
+      }
+    }
+  });
+
+  ws["!merges"] = merges;
+
+  XLSX.utils.book_append_sheet(workbook, ws, "Booking Details");
+
+  XLSX.writeFile(
+    workbook,
+    `${downloadOption.toUpperCase()}-${booking.userData.name
+      .replace(/\s+/g, "_")}-${booking.id.slice(0, 8)}.xlsx`
+  );
+
+  toast.success("Excel downloaded successfully");
+};
+
+
+
+
+  //Export all the bookings 
+  const exportAllToExcel = () => {
+  const workbook = XLSX.utils.book_new();
+
+  // ✅ Headers (Added Sr. No.)
+  const headers = [
+    "Sr. No.",
+    "Booking ID",
+    "Name",
+    "Email",
+    "Phone",
+    "Type",
+    "Plan",
+    "Date",
+    "Time",
+    "Created At",
+  ];
+
+  // ✅ Data rows
+  const data = filteredBookings.map((b, index) => [
+    index + 1, // Sr. No.
+    b.id,
+    b.userData?.name || "-",
+    b.userData?.email || "-",
+    b.userData?.phone || "-",
+    b.subscription?.type || "-",
+    b.subscription?.duration || "-",
+    parseDDMMYYYY(b.appointment.date).toLocaleDateString("en-IN") || "-",
+    b.appointment?.time || "-" ,
+    new Date(b.createdAt).toLocaleDateString(),
+  ]);
+
+  const wsData = [headers, ...data];
+  const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+  // 🎨 Column width (spacing)
+  ws["!cols"] = [
+    { wch: 8 },   // Sr. No.
+    { wch: 20 },  // Booking ID
+    { wch: 20 },  // Name
+    { wch: 28 },  // Email
+    { wch: 16 },  // Phone
+    { wch: 14 },  // Type
+    { wch: 14 },  // Plan
+    { wch: 14 },  // Date
+    { wch: 12 },  // Time
+    { wch: 16 },  // Created
+  ];
+
+  // 🎯 Header styling (bold + center)
+  const range = XLSX.utils.decode_range(ws["!ref"] as string);
+
+  for (let C = range.s.c; C <= range.e.c; ++C) {
+    const cell = ws[XLSX.utils.encode_cell({ r: 0, c: C })];
+    if (!cell) continue;
+
+    cell.s = {
+      font: { bold: true },
+      alignment: { horizontal: "center", vertical: "center" },
+    };
+  }
+
+  // 🎯 Center Sr. No. column
+  for (let R = 1; R <= range.e.r; ++R) {
+    const cell = ws[XLSX.utils.encode_cell({ r: R, c: 0 })];
+    if (!cell) continue;
+
+    cell.s = {
+      alignment: { horizontal: "center" },
+    };
+  }
+
+  XLSX.utils.book_append_sheet(workbook, ws, "Bookings");
+
+  XLSX.writeFile(
+    workbook,
+    `bookings-${new Date().toISOString().split("T")[0]}.xlsx`
+  );
+
+  toast.success("Bookings exported as Excel");
+};
+
+
+
 
   // Calculate stats
   const totalRevenue = bookings.reduce((sum, b) => {
