@@ -2,9 +2,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Check, Calendar as CalendarIcon, Clock, Mail, Phone, User } from "lucide-react";
+import { ArrowLeft, Check, Calendar as CalendarIcon, Clock, Mail, Phone, User, Import } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { RazorpayPaymentResponse, } from "@/types/razorpay";
 
 import { updateSession } from "@/services/session.service";
 
@@ -23,6 +24,32 @@ const Checkout = () => {
       return `${day}-${month}-${year}`;
     }
 
+    interface RazorpayOrder {
+      id: string;
+      amount: number;
+      currency: string;
+    }
+
+
+    const startPayment = async (amount: number): Promise<RazorpayOrder> => {
+  const res = await fetch(
+    import.meta.env.VITE_CREATE_ORDER_URL,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ amount }),
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error("Failed to create payment order");
+  }
+
+  return res.json();
+};
+
+
+
  const handleConfirmBooking = async (e: React.FormEvent) => {
   e.preventDefault();
 
@@ -31,26 +58,71 @@ const Checkout = () => {
     return;
   }
 
+  
+
   try {
-    // FORMAT DATE as dd-mm-yyyy
-    const formattedDate = formatDate(selectedDate);
+    // Calculate final amount
+    const price =
+      parseInt(plan.price.replace(/[₹,]/g, "")) - (plan.discount || 0);
 
-    // SAVE DATE & TIME INTO SESSION
-    await updateSession("booking.date", formattedDate);
-    await updateSession("booking.time", selectedTime);
+    // 1️⃣ Create Razorpay order
+    const order = await startPayment(price);
 
-    toast.success("Booking details saved!");
+    // 2️⃣ Open Razorpay Checkout
+    const options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // ONLY key_id (test)
+      amount: order.amount,
+      currency: order.currency,
+      order_id: order.id,
+      name: "Consultation Booking",
+      description: `${type} consultation`,
+      prefill: {
+        name: userInfo?.name,
+        email: userInfo?.email,
+        contact: userInfo?.phone,
+      },
+      handler: async function (response: RazorpayPaymentResponse) {
+        try {
+          // FORMAT DATE
+          const formattedDate = formatDate(selectedDate);
 
-    // MOVE TO CHECKOUT PAGE
-    navigate("/success", {
-      state: { type, plan, userInfo, selectedDate, selectedTime }
-    });
+          // 3️⃣ Save booking + payment info
+          await updateSession("booking.date", formattedDate);
+          await updateSession("booking.time", selectedTime);
+          await updateSession("payment.id", response.razorpay_payment_id);
+          await updateSession("payment.orderId", response.razorpay_order_id);
+
+          toast.success("Payment successful!");
+
+          // 4️⃣ Navigate to success page
+          navigate("/success", {
+            state: {
+              type,
+              plan,
+              userInfo,
+              selectedDate,
+              selectedTime,
+            },
+          });
+        } catch (err) {
+          console.error(err);
+          toast.error("Payment done but booking save failed");
+        }
+      },
+      theme: {
+        color: "#3399cc",
+      },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
 
   } catch (err) {
-    console.error("Booking session save failed:", err);
-    toast.error("Something went wrong while saving booking.");
+    console.error(err);
+    toast.error("Payment initiation failed");
   }
 };
+
 
   const servicesIncluded = type === "hair" 
   ? [
