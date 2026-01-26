@@ -11,6 +11,7 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 
 import { updateSession } from "@/services/session.service";
+import { toast } from "@/components/ui/sonner";
 
 interface Question {
   id: string;
@@ -375,8 +376,7 @@ const Consultation = () => {
     }
 
   } catch (err) {
-    console.error("Failed to save to session:", err);
-    // Optional: show toast to user
+    toast.error("Failed to save session. Please try again.");
   }
 };
 

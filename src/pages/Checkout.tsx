@@ -7,15 +7,15 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import { RazorpayPaymentResponse, } from "@/types/razorpay";
 
-import { updateSession } from "@/services/session.service";
+import { getSession } from "@/utils/session.storage";
 
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, plan, userInfo, selectedDate, selectedTime } = location.state || {};
-
-
+  const { type, plan, userInfo, selectedDate, selectedTime  } = location.state || {};
+  const storedSession = getSession();
+  const sessionId = storedSession.sessionId
 
     function formatDate(date: Date) {
       const day = String(date.getDate()).padStart(2, "0");
@@ -24,104 +24,128 @@ const Checkout = () => {
       return `${day}-${month}-${year}`;
     }
 
-    interface RazorpayOrder {
-      id: string;
-      amount: number;
-      currency: string;
-    }
-
-
-    const startPayment = async (amount: number): Promise<RazorpayOrder> => {
-  const res = await fetch(
-    import.meta.env.VITE_CREATE_ORDER_URL,
-    {
+    const startPayment = async (
+    amount: number,
+    docId: string
+  ) => {
+    const res = await fetch(import.meta.env.VITE_CREATE_ORDER_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount }),
-    }
-  );
+      body: JSON.stringify({ amount, docId }),
+    });
 
-  if (!res.ok) {
-    throw new Error("Failed to create payment order");
+    if (!res.ok) {
+      throw new Error("Failed to create payment order");
+    }
+    return res.json();
+  };
+
+
+const verifyPayment = async (payload: {
+    docId: string;
+    razorpay_payment_id: string;
+    razorpay_order_id: string;
+    razorpay_signature: string;
+  }) => {
+    
+    const res = await fetch(import.meta.env.VITE_VERIFY_PAYMENT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    
+  const data = await res.json(); 
+    if (!res.ok) {
+    throw new Error(data?.error || "Payment verification failed");
   }
 
-  return res.json();
-};
-
+  return data;
+  };
 
 
  const handleConfirmBooking = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!selectedDate || !selectedTime) {
-    toast.error("Please select a date and time for your consultation");
-    return;
-  }
+    if (!sessionId) {
+      toast.error("Booking session missing");
+      return;
+    }
 
-  
+    try {
+      const price =
+        parseInt(plan.price.replace(/[₹,]/g, "")) - (plan.discount || 0);
 
-  try {
-    // Calculate final amount
-    const price =
-      parseInt(plan.price.replace(/[₹,]/g, "")) - (plan.discount || 0);
+      // 🟢 STEP 1 — Create Razorpay order (BACKEND)
+      const order = await startPayment(price, sessionId);
 
-    // 1️⃣ Create Razorpay order
-    const order = await startPayment(price);
+      // 🔴 HARD CHECK
+      if (!(window as any).Razorpay) {
+        console.error("Razorpay SDK missing");
+        toast.error("Razorpay SDK not loaded");
+        return ;
+      }
 
-    // 2️⃣ Open Razorpay Checkout
-    const options = {
-      key: import.meta.env.VITE_RAZORPAY_KEY_ID, // ONLY key_id (test)
-      amount: order.amount,
-      currency: order.currency,
-      order_id: order.id,
-      name: "Consultation Booking",
-      description: `${type} consultation`,
-      prefill: {
-        name: userInfo?.name,
-        email: userInfo?.email,
-        contact: userInfo?.phone,
-      },
-      handler: async function (response: RazorpayPaymentResponse) {
-        try {
-          // FORMAT DATE
-          const formattedDate = formatDate(selectedDate);
+      // 🟢 STEP 2 — Open Razorpay
+      const options = {
+        key: order.keyId,
+        amount: order.amount,
+        currency: order.currency,
+        order_id: order.orderId,
 
-          // 3️⃣ Save booking + payment info
-          await updateSession("booking.date", formattedDate);
-          await updateSession("booking.time", selectedTime);
-          await updateSession("payment.id", response.razorpay_payment_id);
-          await updateSession("payment.orderId", response.razorpay_order_id);
+        name: "Consultation Booking",
+        description: `${type} consultation`,
+        prefill: {
+          name: userInfo?.name,
+          email: userInfo?.email,
+          contact: userInfo?.phone,
+        },
 
-          toast.success("Payment successful!");
+        handler: async (response: RazorpayPaymentResponse) => {
+          try {
+            // 🟢 STEP 3 — SEND PAYMENT TO BACKEND (CHANGE HERE)
+            const verifyed = await verifyPayment({
+              docId: sessionId,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+            });
 
-          // 4️⃣ Navigate to success page
-          navigate("/success", {
-            state: {
-              type,
-              plan,
-              userInfo,
-              selectedDate,
-              selectedTime,
-            },
-          });
-        } catch (err) {
-          console.error(err);
-          toast.error("Payment done but booking save failed");
-        }
-      },
-      theme: {
-        color: "#3399cc",
-      },
-    };
+            toast.success("Payment successful!");
 
-    const rzp = new window.Razorpay(options);
-    rzp.open();
+            // 🟢 STEP 4 — Navigate
+            navigate("/success", {
+              replace: true,
+              state: {
+                type,
+                plan,
+                userInfo,
+                selectedDate,
+                selectedTime,
+              },
+            });
+          } catch (err) {
+            toast.error("Payment verification failed");
+          }
+        },
 
-  } catch (err) {
-    console.error(err);
-    toast.error("Payment initiation failed");
-  }
-};
+        // 🟢 OPTIONAL SAFETY
+        modal: {
+          ondismiss: () => {
+            toast.error("Payment cancelled");
+          },
+        },
+
+        theme: { color: "#3399cc" },
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      toast.error("Payment initiation failed");
+    }
+  };
+
 
 
   const servicesIncluded = type === "hair" 

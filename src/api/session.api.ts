@@ -1,10 +1,8 @@
-const API = "https://api-difbvyyjra-uc.a.run.app";
-
+const API = import.meta.env.VITE_API_URL
 /* ======================================================
    CREATE SESSION
 ====================================================== */
 export async function createSessionApi() {
-  console.log("🔵 createSessionApi → POST", `${API}/session/create`);
 
   const res = await fetch(`${API}/session/create`, { method: "POST" });
 
@@ -15,7 +13,6 @@ export async function createSessionApi() {
   }
 
   const data = await res.json();
-  console.log("🟢 createSessionApi Success:", data);
 
   return data;
 }
@@ -52,7 +49,6 @@ export async function updateSessionApi(key: string, value: any) {
     value,
   };
 
-  console.log("Payload", payload)
 
   const res = await fetch(`${API}/session/update`, {
     method: "POST",
@@ -60,7 +56,6 @@ export async function updateSessionApi(key: string, value: any) {
     body: JSON.stringify(payload),
   });
 
-    console.log("res", res)
 
 
   if (res.status === 403) {

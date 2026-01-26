@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
+import { getSession } from "@/utils/session.storage";
 
 const timeSlots = [
   "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -17,6 +18,7 @@ const Booking = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { type, plan, userInfo } = location.state || {};
+
 
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");

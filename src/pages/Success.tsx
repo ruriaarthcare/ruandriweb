@@ -28,7 +28,6 @@ const Success = () => {
     navigate("/");
     
   } catch (err) {
-    console.error(err);
     toast.error("Error closing session");
     localStorage.removeItem("session");
 

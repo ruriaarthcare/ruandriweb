@@ -31,12 +31,11 @@ export async function validateSession() {
   const res = await validateSessionApi(session.sessionId, session.sessionSecret);
 
   if (!res.valid) {
-    console.log("❌ Session invalid or expired:", res.message);
     clearSession();
     return false;
   }
 
-  console.log("✅ Session valid");
+  // console.log("✅ Session valid");
   return true;
 }
 
@@ -44,23 +43,22 @@ export async function validateSession() {
 export async function updateSession(key: string, value: any) {
   const session = getSession();
   if (!session) {
-    console.error("❌ No session found");
+    // console.error("❌ No session found");
     return false;
   }
 
   const res = await updateSessionApi(key, value );
 
    if (res.closed) {
-    console.error("❌ Session has been closed. No more updates allowed.");
+    // console.error("❌ Session has been closed. No more updates allowed.");
     return false;
   }
 
   if (res.success) {
-    console.log(`✅ Session updated: ${key} = ${value}`);
     return true;
   }
 
-  console.log("❌ Failed to update session");
+  // console.log("❌ Failed to update session");
   return false;
 }
 
@@ -86,11 +84,11 @@ export async function closeSession() {
       return true;
     }
 
-    console.error("❌ Failed to close session");
+    // console.error("❌ Failed to close session");
     return false;
 
   } catch (err) {
-    console.error("❌ Close session error:", err);
+    // console.error("❌ Close session error:", err);
     return false;
   }
 }
