@@ -22,12 +22,26 @@ const Booking = () => {
 
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [pincode, setPincode] = useState("");
+
+  
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!selectedDate || !selectedTime) {
       toast.error("Please select a date and time for your consultation");
+      return;
+    }
+      if (!address.trim() || !city.trim() || !pincode.trim()) {
+    toast.error("Please fill in your complete address");
+    return;
+    }
+
+    if (!/^\d{6}$/.test(pincode)) {
+      toast.error("Please enter a valid 6-digit pincode");
       return;
     }
 
@@ -37,7 +51,12 @@ const Booking = () => {
         plan,
         userInfo,
         selectedDate,
-        selectedTime
+        selectedTime,
+        address: {
+          street: address,
+          city,
+          pincode
+        }
       }
     });
   };
@@ -97,6 +116,36 @@ const Booking = () => {
                     ))}
                   </div>
                 </div>
+
+                <div>
+                  <Label className="mb-3">Delivery Address</Label>
+                  <div className="space-y-3">
+                    <textarea
+                      placeholder="Street address, building, apartment..."
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full border rounded-md p-2 min-h-[80px]"
+                    />
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <input
+                        placeholder="City"
+                        value={city}
+                        onChange={(e) => setCity(e.target.value)}
+                        className="border rounded-md p-2"
+                      />
+
+                      <input
+                        placeholder="Pincode"
+                        value={pincode}
+                        onChange={(e) => setPincode(e.target.value)}
+                        maxLength={6}
+                        className="border rounded-md p-2"
+                      />
+                    </div>
+                  </div>
+                </div>
+
 
                 <Button
                   type="submit"

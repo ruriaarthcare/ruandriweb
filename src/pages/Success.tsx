@@ -10,7 +10,7 @@ import { closeSession } from "@/services/session.service";
 const Success = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, plan, userInfo, selectedDate, selectedTime } = location.state || {};
+  const { type, plan, userInfo, selectedDate, selectedTime, address } = location.state || {};
 
   const handleReturnHome = async () => {
   try {

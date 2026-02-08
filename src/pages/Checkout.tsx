@@ -7,13 +7,14 @@ import { toast } from "sonner";
 import Header from "@/components/Header";
 import { RazorpayPaymentResponse, } from "@/types/razorpay";
 
+import { updateSession } from "@/services/session.service";
 import { getSession } from "@/utils/session.storage";
 
 
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, plan, userInfo, selectedDate, selectedTime  } = location.state || {};
+  const { type, plan, userInfo, selectedDate, selectedTime, address } = location.state || {};
   const storedSession = getSession();
   const sessionId = storedSession.sessionId
 
@@ -46,6 +47,11 @@ const verifyPayment = async (payload: {
     razorpay_payment_id: string;
     razorpay_order_id: string;
     razorpay_signature: string;
+    appointment: {
+    date: string;
+    time: string;
+    address?: any;
+  };
   }) => {
     
     const res = await fetch(import.meta.env.VITE_VERIFY_PAYMENT_URL, {
@@ -109,7 +115,14 @@ const verifyPayment = async (payload: {
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,
               razorpay_signature: response.razorpay_signature,
+              appointment: {
+                date: selectedDate,
+                time: selectedTime,
+                address,
+              },
             });
+
+
 
             toast.success("Payment successful!");
 
@@ -122,12 +135,13 @@ const verifyPayment = async (payload: {
                 userInfo,
                 selectedDate,
                 selectedTime,
+                address
               },
             });
           } catch (err) {
             toast.error("Payment verification failed");
           }
-        },
+        },  
 
         // 🟢 OPTIONAL SAFETY
         modal: {
@@ -220,6 +234,24 @@ const verifyPayment = async (payload: {
                   </div>
                 </div>
               </Card>
+
+              {/* Delivery Address */}
+              {address && (
+                <Card className="p-6 shadow-medium">
+                  <h2 className="text-2xl font-bold mb-4 text-foreground">
+                    Delivery Address
+                  </h2>
+                  <div className="space-y-2">
+                    <p className="text-foreground font-medium">
+                      {address.street}
+                    </p>
+                    <p className="text-muted-foreground">
+                      {address.city} - {address.pincode}
+                    </p>
+                  </div>
+                </Card>
+              )}
+
 
               {/* Appointment Details */}
               <Card className="p-6 shadow-medium">
