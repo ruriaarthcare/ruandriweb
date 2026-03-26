@@ -29,6 +29,7 @@ const skinQuestions: Question[] = [
     section: "Section 1: Skin Goals & Concerns",
     sectionIcon: "✨",
     question: "What is your primary skin goal?",
+    multiSelect: true,
     options: [
       "Reduce acne/pimples",
       "Control oil & shine",
@@ -43,6 +44,7 @@ const skinQuestions: Question[] = [
     id: "afterCleansing",
     section: "Section 1: Skin Goals & Concerns",
     question: "How does your skin usually feel after cleansing?",
+    multiSelect: true,
     options: ["Tight and dry", "Fresh and balanced", "Oily within an hour", "Irritated or itchy"]
   },
   {
@@ -71,6 +73,7 @@ const skinQuestions: Question[] = [
     section: "Section 2: Lifestyle & Habits",
     sectionIcon: "✨",
     question: "How much sun exposure do you usually get?",
+    multiSelect: true,
     options: [
       "Mostly indoors",
       "A few hours outdoors daily",
@@ -82,6 +85,7 @@ const skinQuestions: Question[] = [
     id: "lifestyle",
     section: "Section 2: Lifestyle & Habits",
     question: "How would you describe your lifestyle?",
+    multiSelect: true,
     options: [
       "Balanced diet & hydration conscious",
       "Busy, irregular routine",
@@ -94,6 +98,7 @@ const skinQuestions: Question[] = [
     id: "diet",
     section: "Section 2: Lifestyle & Habits",
     question: "Which best describes your diet? 🌿",
+    multiSelect: true,
     options: [
       "Vegetarian",
       "Vegan",
@@ -170,6 +175,7 @@ const hairQuestions: Question[] = [
     section: "Section 1: Hair Goals & Concerns",
     sectionIcon: "✨",
     question: "What is your primary hair goal?",
+    multiSelect: true,
     options: [
       "Reduce hair fall",
       "Promote hair growth",
@@ -185,6 +191,7 @@ const hairQuestions: Question[] = [
     id: "scalpType",
     section: "Section 1: Hair Goals & Concerns",
     question: "How would you describe your scalp type?",
+    multiSelect: true,
     options: ["Dry / itchy", "Oily / greasy", "Normal / balanced", "Sensitive"]
   },
   {
@@ -230,6 +237,7 @@ const hairQuestions: Question[] = [
     id: "diet",
     section: "Section 2: Lifestyle & Habits",
     question: "Which best describes your diet? 🌿",
+    multiSelect: true,
     options: [
       "Vegetarian",
       "Vegan",
