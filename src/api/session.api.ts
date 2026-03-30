@@ -38,7 +38,7 @@ export async function validateSessionApi(sessionId: string, token: string) {
 /* ======================================================
    UPDATE SESSION
 ====================================================== */
-export async function updateSessionApi(key: string, value: any) {
+export async function updateSessionApi(key: string, value: string | number | boolean) {
   const session = JSON.parse(localStorage.getItem("session") || "null");
   if (!session) throw new Error("No session");
 
