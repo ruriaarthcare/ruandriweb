@@ -2,7 +2,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, Check, Calendar as CalendarIcon, Clock, Mail, Phone, User, Import } from "lucide-react";
+import { ArrowLeft, Check, Calendar as CalendarIcon, Clock, Mail, Phone, User } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import { RazorpayPaymentResponse, } from "@/types/razorpay";
@@ -14,16 +14,17 @@ import { getSession } from "@/utils/session.storage";
 const Checkout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Guard: redirect if navigated directly without state
+  if (!location.state) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
   const { type, plan, userInfo, selectedDate, selectedTime, address } = location.state || {};
   const storedSession = getSession();
-  const sessionId = storedSession.sessionId
+  const sessionId = storedSession?.sessionId;
 
-    function formatDate(date: Date) {
-      const day = String(date.getDate()).padStart(2, "0");
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const year = date.getFullYear();
-      return `${day}-${month}-${year}`;
-    }
 
     const startPayment = async (
     amount: number,
@@ -60,17 +61,24 @@ const verifyPayment = async (payload: {
       body: JSON.stringify(payload),
     });
 
-    
-  const data = await res.json(); 
-    if (!res.ok) {
-    throw new Error(data?.error || "Payment verification failed");
+
+  if (!res.ok) {
+    let errMsg = "Payment verification failed";
+    try {
+      const errData = await res.json();
+      errMsg = errData?.error || errMsg;
+    } catch {
+      // response body was not JSON, use default message
+    }
+    throw new Error(errMsg);
   }
 
+  const data = await res.json();
   return data;
   };
 
 
- const handleConfirmBooking = async (e: React.FormEvent) => {
+ const handleConfirmBooking = async (e: React.MouseEvent) => {
     e.preventDefault();
 
     if (!sessionId) {
@@ -110,7 +118,7 @@ const verifyPayment = async (payload: {
         handler: async (response: RazorpayPaymentResponse) => {
           try {
             // 🟢 STEP 3 — SEND PAYMENT TO BACKEND (CHANGE HERE)
-            const verifyed = await verifyPayment({
+            const verified = await verifyPayment({
               docId: sessionId,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_order_id: response.razorpay_order_id,

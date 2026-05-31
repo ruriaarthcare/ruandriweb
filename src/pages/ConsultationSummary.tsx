@@ -12,13 +12,24 @@ import { updateSession } from "@/services/session.service";
 const ConsultationSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Read notes safely before the guard — location.state may be null if navigated directly
+  const [additionalNotes, setAdditionalNotes] = useState<string>(
+    (location.state as any)?.additionalNotes ?? ""
+  );
+
+  // Guard: redirect if navigated directly without state (after all hooks)
+  if (!location.state) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
   const { type, answers, userInfo } = location.state as {
     type: "skin" | "hair";
     answers: Record<string, string | string[]>;
     userInfo: { name: string; email: string; phone: string };
+    additionalNotes?: string;
   };
-
-  const [additionalNotes, setAdditionalNotes] = useState("");
 
   const handleContinue = async () => {
       if (additionalNotes.trim() !== "") {
@@ -52,8 +63,7 @@ const ConsultationSummary = () => {
             Back
           </Button>
 
-          <Card className="p-8 m
-          d:p-12 shadow-medium">
+          <Card className="p-8 md:p-12 shadow-medium">
             {/* Success Header */}
             <div className="text-center mb-8">
               <div className="mb-4 flex justify-center">

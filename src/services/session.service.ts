@@ -63,24 +63,11 @@ export async function updateSession(key: string, value: any) {
 }
 
 
-export async function loadSessionState() {
-  const session = getSession();
-  if (!session) return null; 
-
-  const res = await validateSessionApi(session.sessionId, session.sessionSecret);
-
-  if (!res.valid) return null;
-
-  return res.data; 
-
-}
-
 export async function closeSession() {
   try {
     const res = await closeSessionApi();
 
     if (res.success) {
-      console.log("✅ Session successfully closed");
       return true;
     }
 

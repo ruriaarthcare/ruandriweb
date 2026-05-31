@@ -34,11 +34,14 @@ const App = () => {
   // 🔥 AUTO CREATE + VALIDATE SESSION ON APP LOAD
   useEffect(() => {
     const initSession = async () => {
-      const isValid = await validateSession();
-
-      if (!isValid) {
-        console.log("⚠ No valid session → creating new session...");
-        await createSession();
+      try {
+        const isValid = await validateSession();
+        if (!isValid) {
+          await createSession();
+        }
+      } catch (err) {
+        console.error("Session init failed — API may be down:", err);
+        // App continues — session will be retried on next user action
       }
     };
 

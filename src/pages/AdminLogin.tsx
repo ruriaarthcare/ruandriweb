@@ -36,10 +36,10 @@ const AdminLogin = () => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
     toast.success("Welcome back!");
-    // navigation handled by auth listener
-     navigate("/admin/dashboard", { replace: true });
+    // Navigation is handled automatically by the onAuthStateChanged listener above
   } catch (error: any) {
-    toast.error(error.message || "Login failed");
+    // Generic message — don't expose which field failed (email enumeration)
+    toast.error("Invalid email or password. Please try again.");
   } finally {
     setIsLoading(false);
   }

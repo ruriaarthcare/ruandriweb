@@ -28,8 +28,9 @@ export async function fetchAdminBookings(): Promise<Booking[]> {
         },
 
         appointment: {
-            date: b.data.booking?.date ?? "",
-            time: b.data.booking?.time ?? "",
+            date: b.appointment?.date ?? b.data.booking?.date ?? "",
+            time: b.appointment?.time ?? b.data.booking?.time ?? "",
+            address: b.appointment?.address ?? b.data.booking?.address ?? b.data.address ?? null,
         },
 
         // keep full questionnaire data

@@ -15,6 +15,12 @@ export interface Booking {
   appointment: {
     date: string;
     time: string;
+    address?: {
+      street: string;
+      city: string;
+      pincode: string;
+    } | string;
+    confirmedAt?: any;
   };
 
   subscription: {

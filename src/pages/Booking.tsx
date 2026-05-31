@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Calendar as CalendarIcon, Clock } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
-import { getSession } from "@/utils/session.storage";
+
 
 const timeSlots = [
   "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
@@ -17,14 +17,20 @@ const timeSlots = [
 const Booking = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { type, plan, userInfo } = location.state || {};
-
 
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [pincode, setPincode] = useState("");
+
+  // Guard: redirect if navigated directly without state (after all hooks)
+  if (!location.state) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
+  const { type, plan, userInfo } = location.state || {};
 
   
 
@@ -92,7 +98,11 @@ const Booking = () => {
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    disabled={(date) => date < new Date()}
+                    disabled={(date) => {
+                      const today = new Date();
+                      today.setHours(0, 0, 0, 0);
+                      return date < today;
+                    }}
                     className="rounded-md border w-full"
                   />
                 </div>

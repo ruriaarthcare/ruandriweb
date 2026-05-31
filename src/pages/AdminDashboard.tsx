@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,7 +37,6 @@ import {
   IndianRupee,
   TrendingUp,
   Download,
-  Eye,
   RefreshCw,
   FileSpreadsheet,
   ChevronLeft,
@@ -104,13 +103,65 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
-  const [sidePanelOpen, setSidePanelOpen] = useState(false);
+
   const [downloadOption, setDownloadOption] = useState<DownloadOption>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState<TabOption>("all");
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showDownloadDialog, setShowDownloadDialog] = useState(false);
   const [pendingDownload, setPendingDownload] = useState<Booking | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "details">("list");
+
+  const parseDDMMYYYY = (dateStr: string) => {
+    if (!dateStr || typeof dateStr !== "string") {
+      return new Date(NaN);
+    }
+
+    // 1. If it is in ISO format or YYYY-MM-DD format (starts with 4 digits followed by a dash/slash)
+    if (/^\d{4}[-/]/.test(dateStr)) {
+      const d = new Date(dateStr);
+      if (!isNaN(d.getTime())) return d;
+    }
+
+    // 2. Try parsing as DD-MM-YYYY
+    const cleanStr = dateStr.replace(/\//g, "-");
+    const parts = cleanStr.split("-");
+    if (parts.length === 3) {
+      const [p1, p2, p3] = parts;
+      
+      // If p1 is day (1-2 digits) and p3 starts with year (4 digits)
+      if (p1.length <= 2 && p3.substring(0, 4).length === 4) {
+        const day = Number(p1);
+        const month = Number(p2);
+        const year = Number(p3.substring(0, 4));
+        const d = new Date(year, month - 1, day);
+        if (!isNaN(d.getTime())) return d;
+      }
+      
+      // If p1 is year (4 digits) p3 is day
+      if (p1.length === 4 && p3.length <= 2) {
+        const year = Number(p1);
+        const month = Number(p2);
+        const day = Number(p3);
+        const d = new Date(year, month - 1, day);
+        if (!isNaN(d.getTime())) return d;
+      }
+    }
+
+    // 3. Fallback: Try native Date parser
+    const fallback = new Date(dateStr);
+    return fallback;
+  };
+
+  const formatDateSafe = (dateStr: string) => {
+    const d = parseDDMMYYYY(dateStr);
+    if (isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "short",
+      day: "numeric"
+    });
+  };
 
  useEffect(() => {
   const unsub = auth.onAuthStateChanged((user) => {
@@ -147,7 +198,7 @@ const AdminDashboard = () => {
   const handleViewBooking = (booking: Booking) => {
     setSelectedBooking(booking);
     setDownloadOption("all");
-    setSidePanelOpen(true);
+    setViewMode("details");
   };
 
   const handleDownloadClick = (booking: Booking) => {
@@ -181,7 +232,7 @@ const downloadAsExcel = (booking: Booking) => {
     sheetData.push(["Amount", booking.subscription?.amount || "-"]);
     sheetData.push([
       "Appointment Date",
-      parseDDMMYYYY(booking.appointment.date).toLocaleDateString("en-IN"),
+      booking.appointment?.date ? formatDateSafe(booking.appointment.date) : "—",
     ]);
     sheetData.push(["Time", booking.appointment?.time || "-"]);
     sheetData.push([]);
@@ -277,7 +328,7 @@ const downloadAsExcel = (booking: Booking) => {
     b.userData?.phone || "-",
     b.subscription?.type || "-",
     b.subscription?.duration || "-",
-    parseDDMMYYYY(b.appointment.date).toLocaleDateString("en-IN") || "-",
+    b.appointment?.date ? formatDateSafe(b.appointment.date) : "—",
     b.appointment?.time || "-" ,
     new Date(b.createdAt).toLocaleDateString(),
   ]);
@@ -340,11 +391,11 @@ const downloadAsExcel = (booking: Booking) => {
   return sum + (b.subscription?.amount ?? 0);
 }, 0);
 
-  const todayBookingsCount = bookings.filter(
-  (b) =>
-    b.appointment?.date &&
-    new Date(b.appointment.date).toDateString() === new Date().toDateString()
-).length;
+  const todayBookingsCount = bookings.filter((b) => {
+    if (!b.appointment?.date) return false;
+    const d = parseDDMMYYYY(b.appointment.date);
+    return !isNaN(d.getTime()) && d.toDateString() === new Date().toDateString();
+  }).length;
 
 
 
@@ -354,12 +405,14 @@ const downloadAsExcel = (booking: Booking) => {
       return new Date(b.createdAt).toDateString() === new Date().toDateString();
     }
     if (activeTab === "todaySessions") {
-      return new Date(b.appointment.date).toDateString() === new Date().toDateString();
+      if (!b.appointment?.date) return false;
+      const d = parseDDMMYYYY(b.appointment.date);
+      return !isNaN(d.getTime()) && d.toDateString() === new Date().toDateString();
     }
     return true;
   }).sort((a, b) => {
     if (activeTab === "todaySessions") {
-      return a.appointment.date.localeCompare(b.appointment.time);
+      return (a.appointment?.time || "").localeCompare(b.appointment?.time || "");
     }
     return 0;
   });
@@ -370,11 +423,6 @@ const downloadAsExcel = (booking: Booking) => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
-
-  const parseDDMMYYYY = (dateStr: string) => {
-  const [day, month, year] = dateStr.split("-");
-  return new Date(Number(year), Number(month) - 1, Number(day));
-};
 
 
   // Reset page when tab changes
@@ -403,316 +451,206 @@ const downloadAsExcel = (booking: Booking) => {
           </Button>
         </div>
       </header>
-
       <div className="container mx-auto px-4 py-8">
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-6 shadow-soft">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Bookings</p>
-                <p className="text-2xl font-bold text-foreground">{bookings.length}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-soft">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
-                <Calendar className="w-6 h-6 text-secondary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Today's Sessions</p>
-                <p className="text-2xl font-bold text-foreground">{todayBookingsCount}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-soft">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
-                <IndianRupee className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Revenue</p>
-                <p className="text-2xl font-bold text-foreground">₹{totalRevenue.toLocaleString()}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 shadow-soft">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Today's New</p>
-                <p className="text-2xl font-bold text-foreground">
-                  {bookings.filter((b) => new Date(b.createdAt).toDateString() === new Date().toDateString()).length}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Tab Navigation with Actions */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-2">
-            {tabs.map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  activeTab === tab.key
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground hover:bg-muted/80"
-                }`}
+        {viewMode === "details" && selectedBooking ? (
+          <div className="space-y-6">
+            {/* Header / Navigation Bar */}
+            <div className="flex flex-col gap-3 pb-4 border-b">
+              <Button 
+                variant="ghost" 
+                onClick={() => setViewMode("list")} 
+                className="w-fit pl-0 hover:bg-transparent text-muted-foreground hover:text-foreground transition-colors"
               >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={fetchBookings}>
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
-            </Button>
-            <Button onClick={exportAllToExcel} className="bg-gradient-primary hover:opacity-90">
-              <Download className="w-4 h-4 mr-2" />
-              Export Excel
-            </Button>
-          </div>
-        </div>
-
-        {/* Bookings Table */}
-        <Card className="shadow-medium overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Customer</TableHead>
-                <TableHead>Contact</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Plan</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead>Time</TableHead>
-                <TableHead>Amount</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-          {loading ? (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center py-12">
-                Loading bookings...
-              </TableCell>
-            </TableRow>
-          ) : filteredBookings.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={8} className="text-center py-12">
-                <p className="text-muted-foreground">No bookings found</p>
-              </TableCell>
-            </TableRow>
-          ) : (
-            paginatedBookings.map((booking) => (
-              
-          <TableRow key={booking.id}>
-          <TableCell>
-            <div className="font-medium">
-              {booking.userData?.name || "Unknown"}
-            </div>
-          </TableCell>
-
-          <TableCell>
-            <div className="text-sm">
-              {booking.userData?.email || "—"}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {booking.userData?.phone || "—"}
-            </div>
-          </TableCell>
-
-          <TableCell>
-            <Badge variant="secondary" className="capitalize">
-              {booking.subscription?.type || "—"}
-            </Badge>
-          </TableCell>
-
-          <TableCell>{booking.subscription?.duration || "—"}</TableCell>
-
-          <TableCell>
-            {booking.appointment?.date
-              ? parseDDMMYYYY(booking.appointment.date).toLocaleDateString("en-IN")
-              : "—"}
-          </TableCell>
-
-          <TableCell>{booking.appointment?.time || "—"}</TableCell>
-
-          <TableCell className="font-semibold">
-            ₹{booking.subscription?.amount ?? 0}
-          </TableCell>
-
-          <TableCell>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleViewBooking(booking)}
-            >
-              View
-            </Button>
-          </TableCell>
-        </TableRow>
-
-        ))
-
-  )}
-</TableBody>
-
-          </Table>
-
-          {/* Pagination */}
-          {filteredBookings.length > ITEMS_PER_PAGE && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
-              <p className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-                {Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} of {filteredBookings.length} bookings
-              </p>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  disabled={currentPage === 1}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                  Previous
-                </Button>
-                <span className="text-sm text-foreground px-2">
-                  Page {currentPage} of {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* Side Panel */}
-      <Sheet open={sidePanelOpen} onOpenChange={setSidePanelOpen}>
-        <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>Booking Details</SheetTitle>
-          </SheetHeader>
-
-          {selectedBooking && (
-            <div className="mt-6 space-y-6">
-              {/* User Data Section */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground border-b pb-2">User Information</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Name</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.name}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.email}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Phone</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.userData.phone}</p>
-                  </div>
+                <ChevronLeft className="w-5 h-5 mr-1" />
+                Back to Bookings
+              </Button>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full uppercase tracking-wider capitalize">
+                    {selectedBooking.subscription.type} Care
+                  </span>
+                  <h2 className="text-3xl font-extrabold text-foreground mt-2">
+                    {selectedBooking.userData.name}
+                  </h2>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Booking ID: <span className="font-mono font-medium text-foreground">{selectedBooking.id}</span> • Registered on {new Date(selectedBooking.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadClick(selectedBooking)}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Summary
+                  </Button>
                 </div>
               </div>
+            </div>
 
-              {/* Subscription Section */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground border-b pb-2">Subscription Details</h3>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-muted-foreground">Type</p>
-                    <p className="text-sm font-medium capitalize text-foreground">{selectedBooking.subscription.type}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Plan</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.subscription.duration}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Amount</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.subscription.amount}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Date</p>
-                    <p className="text-sm font-medium text-foreground">
-                      {parseDDMMYYYY(selectedBooking.appointment.date).toLocaleDateString("en-IN")}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground">Time</p>
-                    <p className="text-sm font-medium text-foreground">{selectedBooking.appointment.time}</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Questionnaire Section */}
-              <div className="space-y-3">
-                <h3 className="font-semibold text-foreground border-b pb-2">
-                  Questionnaire Responses
-                </h3>
-
-                {selectedBooking.data ? (
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  {Object.entries(selectedBooking.data)
-                    .filter(([key]) => key.startsWith("Q")) 
-                    .map(([key, value]) => (
-                      <div key={key} className="bg-muted/50 rounded-lg p-3">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          {(selectedBooking.subscription.type === "skin"
-                            ? SKIN_QUESTION_LABELS
-                            : HAIR_QUESTION_LABELS)[key] ?? key}
-                        </p>
-                        <p className="text-sm font-medium text-foreground">
-                          {Array.isArray(value) ? value.join(", ") : value || "—"}
-                        </p>
-                      </div>
-                    ))}
-
-                  {/* Additional Notes */}
-                  {selectedBooking.data.additionalNotes && (
-                    <div className="bg-muted/50 rounded-lg p-3 border border-dashed">
-                      <p className="text-xs text-muted-foreground mb-1">
-                        Additional Notes
-                      </p>
-                      <p className="text-sm font-medium text-foreground">
-                        {selectedBooking.data.additionalNotes}
-                      </p>
+            {/* Layout Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Left Column (Customer Details, Questionnaire) */}
+              <div className="lg:col-span-2 space-y-6">
+                
+                {/* Customer Card */}
+                <Card className="p-6 shadow-soft border-border/40 bg-card/60 backdrop-blur">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">Customer Profile</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Email Address</p>
+                      <p className="text-sm font-semibold text-foreground mt-1 select-all">{selectedBooking.userData.email}</p>
                     </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Phone Number</p>
+                      <p className="text-sm font-semibold text-foreground mt-1 select-all">{selectedBooking.userData.phone}</p>
+                    </div>
+                    {(() => {
+                      const addr = selectedBooking.appointment?.address || selectedBooking.data?.booking?.address || selectedBooking.data?.address;
+                      if (addr) {
+                        return (
+                          <div className="sm:col-span-2 mt-2">
+                            <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Delivery Address</p>
+                            <p className="text-sm font-medium text-foreground mt-1 bg-muted/40 p-3 rounded-lg border border-dashed border-border/80">
+                              {typeof addr === "string" 
+                                ? addr 
+                                : `${addr.street || addr.addressLine || addr.address || ""}, ${addr.city || ""} - ${addr.pincode || ""}`.trim().replace(/^,?\s*,?/, "")}
+                            </p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </Card>
+
+                {/* Questionnaire Card */}
+                <Card className="p-6 shadow-soft border-border/40 bg-card/60 backdrop-blur">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">Consultation Questionnaire</h3>
+                  
+                  {selectedBooking.data ? (
+                    <div className="space-y-4">
+                      {Object.entries(selectedBooking.data)
+                        .filter(([key]) => key.startsWith("Q"))
+                        .sort(([a], [b]) => {
+                          const numA = parseInt(a.slice(1), 10);
+                          const numB = parseInt(b.slice(1), 10);
+                          return numA - numB;
+                        })
+                        .map(([key, value]) => (
+                          <div key={key} className="bg-muted/30 rounded-xl p-4 border border-border/30 hover:border-border/60 transition-all">
+                            <p className="text-sm font-semibold text-foreground/90 mb-2">
+                              {(selectedBooking.subscription.type === "skin"
+                                ? SKIN_QUESTION_LABELS
+                                : HAIR_QUESTION_LABELS)[key] ?? key}
+                            </p>
+                            <p className="text-sm text-muted-foreground pl-3 border-l-2 border-primary/60 font-medium">
+                              {Array.isArray(value) ? value.join(", ") : value || "—"}
+                            </p>
+                          </div>
+                        ))}
+
+                      {/* Additional Notes */}
+                      {selectedBooking.data.additionalNotes && (
+                        <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
+                          <p className="text-sm font-semibold text-primary mb-2">
+                            Additional Customer Notes
+                          </p>
+                          <p className="text-sm text-foreground/90 font-medium">
+                            {selectedBooking.data.additionalNotes}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic text-center py-6">
+                      No questionnaire data available
+                    </p>
                   )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  No questionnaire data available
-                </p>
-              )}
-            </div>
+                </Card>
+              </div>
 
+              {/* Right Column (Plan, Payment, Actions) */}
+              <div className="space-y-6">
+                
+                {/* Subscription Details Card */}
+                <Card className="p-6 shadow-soft border-border/40 bg-card/60 backdrop-blur">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">Subscription</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-muted-foreground">Type</span>
+                      <span className="text-sm font-bold capitalize text-primary bg-primary/10 px-2.5 py-0.5 rounded-full">{selectedBooking.subscription.type}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-muted-foreground">Plan Duration</span>
+                      <span className="text-sm font-semibold text-foreground">{selectedBooking.subscription.duration}</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-muted-foreground">Amount</span>
+                      <span className="text-sm font-bold text-foreground">₹{selectedBooking.subscription.amount}</span>
+                    </div>
+                    
+                    <div className="border-t border-border/60 my-2 pt-2 space-y-3">
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-muted-foreground">Session Date</span>
+                        <span className="text-sm font-semibold text-foreground">
+                          {selectedBooking.appointment?.date ? formatDateSafe(selectedBooking.appointment.date) : "—"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center py-1">
+                        <span className="text-sm text-muted-foreground">Session Time</span>
+                        <span className="text-sm font-semibold text-foreground">{selectedBooking.appointment?.time || "—"}</span>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
 
-              {/* Download Options */}
-                <div className="space-y-3">
-                  <h3 className="font-semibold text-foreground border-b pb-2">Download Data</h3>
-                  <div className="flex gap-2">
+                {/* Payment Card */}
+                <Card className="p-6 shadow-soft border-border/40 bg-card/60 backdrop-blur">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">Payment Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-muted-foreground">Payment Status</span>
+                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/45 px-2.5 py-0.5 rounded-full">Paid</span>
+                    </div>
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-sm text-muted-foreground">Total Paid</span>
+                      <span className="text-sm font-bold text-foreground">₹{selectedBooking.subscription.amount}</span>
+                    </div>
+                    
+                    {(() => {
+                      const payId = selectedBooking.data?.razorpay_payment_id || selectedBooking.data?.paymentId || selectedBooking.data?.razorpayPaymentId || selectedBooking.data?.payment?.razorpay_payment_id || selectedBooking.data?.payment?.paymentId;
+                      if (payId) {
+                        return (
+                          <div className="pt-2 border-t border-border/60 mt-2">
+                            <p className="text-xs text-muted-foreground font-semibold">Razorpay Payment ID</p>
+                            <p className="text-xs font-mono font-medium text-foreground bg-muted/60 p-2 rounded mt-1 select-all border border-border/80 break-all">{payId}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                    {(() => {
+                      const orderId = selectedBooking.data?.razorpay_order_id || selectedBooking.data?.orderId || selectedBooking.data?.razorpayOrderId || selectedBooking.data?.payment?.razorpay_order_id || selectedBooking.data?.payment?.orderId;
+                      if (orderId) {
+                        return (
+                          <div className="pt-2">
+                            <p className="text-xs text-muted-foreground font-semibold">Razorpay Order ID</p>
+                            <p className="text-xs font-mono font-medium text-foreground bg-muted/60 p-2 rounded mt-1 select-all border border-border/80 break-all">{orderId}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </div>
+                </Card>
+
+                {/* Actions Card */}
+                <Card className="p-6 shadow-soft border-border/40 bg-card/60 backdrop-blur">
+                  <h3 className="text-lg font-bold text-foreground mb-4 border-b pb-2">Actions</h3>
+                  <div className="space-y-3">
                     <Select value={downloadOption} onValueChange={(v: DownloadOption) => setDownloadOption(v)}>
-                      <SelectTrigger className="flex-1">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select data to download" />
                       </SelectTrigger>
                       <SelectContent>
@@ -723,18 +661,215 @@ const downloadAsExcel = (booking: Booking) => {
                       </SelectContent>
                     </Select>
                     <Button
-                      className="bg-gradient-primary hover:opacity-90"
+                      className="w-full bg-gradient-primary hover:opacity-90 mt-2"
                       onClick={() => handleDownloadClick(selectedBooking)}
                     >
                       <FileSpreadsheet className="w-4 h-4 mr-2" />
-                      Download Excel
+                      Download Excel Report
+                    </Button>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+              <Card className="p-6 shadow-soft">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <Users className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Bookings</p>
+                    <p className="text-2xl font-bold text-foreground">{bookings.length}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 shadow-soft">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-secondary/10 rounded-lg flex items-center justify-center">
+                    <Calendar className="w-6 h-6 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Today's Sessions</p>
+                    <p className="text-2xl font-bold text-foreground">{todayBookingsCount}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 shadow-soft">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center">
+                    <IndianRupee className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Total Revenue</p>
+                    <p className="text-2xl font-bold text-foreground">₹{totalRevenue.toLocaleString()}</p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6 shadow-soft">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Today's New</p>
+                    <p className="text-2xl font-bold text-foreground">
+                      {bookings.filter((b) => new Date(b.createdAt).toDateString() === new Date().toDateString()).length}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Tab Navigation with Actions */}
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex gap-2">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      activeTab === tab.key
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={fetchBookings}>
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh
+                </Button>
+                <Button onClick={exportAllToExcel} className="bg-gradient-primary hover:opacity-90">
+                  <Download className="w-4 h-4 mr-2" />
+                  Export Excel
+                </Button>
+              </div>
+            </div>
+
+            {/* Bookings Table */}
+            <Card className="shadow-medium overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Contact</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Plan</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-12">
+                    Loading bookings...
+                  </TableCell>
+                </TableRow>
+              ) : filteredBookings.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-12">
+                    <p className="text-muted-foreground">No bookings found</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedBookings.map((booking) => (
+                  
+              <TableRow 
+                key={booking.id}
+                onClick={() => handleViewBooking(booking)}
+                className="cursor-pointer hover:bg-muted/50 transition-colors"
+              >
+              <TableCell>
+                <div className="font-medium">
+                  {booking.userData?.name || "Unknown"}
+                </div>
+              </TableCell>
+
+              <TableCell>
+                <div className="text-sm">
+                  {booking.userData?.email || "—"}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {booking.userData?.phone || "—"}
+                </div>
+              </TableCell>
+
+              <TableCell>
+                <Badge variant="secondary" className="capitalize">
+                  {booking.subscription?.type || "—"}
+                </Badge>
+              </TableCell>
+
+              <TableCell>{booking.subscription?.duration || "—"}</TableCell>
+
+              <TableCell>
+                {booking.appointment?.date
+                  ? formatDateSafe(booking.appointment.date)
+                  : "—"}
+              </TableCell>
+
+              <TableCell>{booking.appointment?.time || "—"}</TableCell>
+
+              <TableCell className="font-semibold">
+                ₹{booking.subscription?.amount ?? 0}
+              </TableCell>
+            </TableRow>
+
+            ))
+
+      )}
+    </TableBody>
+
+              </Table>
+
+              {/* Pagination */}
+              {filteredBookings.length > ITEMS_PER_PAGE && (
+                <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredBookings.length)} of {filteredBookings.length} bookings
+                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Previous
+                    </Button>
+                    <span className="text-sm text-foreground px-2">
+                      Page {currentPage} of {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                      <ChevronRight className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
-            </div>
-          )}
-        </SheetContent>
-      </Sheet>
+              )}
+            </Card>
+          </>
+        )}
+      </div>
 
       {/* Logout Confirmation Dialog */}
       <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>

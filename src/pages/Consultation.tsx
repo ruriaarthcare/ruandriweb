@@ -11,7 +11,7 @@ import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import Header from "@/components/Header";
 
 import { updateSession } from "@/services/session.service";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 interface Question {
   id: string;
@@ -321,6 +321,11 @@ const Consultation = () => {
     phone: ""
   });
 
+  if (!consultationType) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
   const questions = consultationType === "skin" ? skinQuestions : hairQuestions;
 
   const handleAnswer = (questionId: string, answer: string) => {
@@ -377,6 +382,7 @@ const Consultation = () => {
             type: consultationType,
             answers,
             userInfo,
+            additionalNotes,
           },
         });
       }
@@ -570,6 +576,7 @@ const Consultation = () => {
                           const selectedOptions = (answers[currentQuestion!.id] as string[]) || [];
                           const isChecked = selectedOptions.includes(option);
                           
+                          const checkboxId = `${currentQuestion!.id}-${option}`;
                           return (
                             <div
                               key={option}
@@ -578,14 +585,14 @@ const Consultation = () => {
                               }`}
                             >
                               <Checkbox
-                                id={option}
+                                id={checkboxId}
                                 checked={isChecked}
                                 onCheckedChange={(checked) => 
                                   handleMultiSelect(currentQuestion!.id, option, checked as boolean)
                                 }
                               />
                               <Label
-                                htmlFor={option}
+                                htmlFor={checkboxId}
                                 className="flex-1 cursor-pointer text-base"
                               >
                                 {option}
@@ -600,20 +607,23 @@ const Consultation = () => {
                         onValueChange={(value) => handleAnswer(currentQuestion!.id, value)}
                         className="space-y-3"
                       >
-                        {currentQuestion!.options.map((option) => (
-                          <div
-                            key={option}
-                            className="flex items-center space-x-3 p-3 rounded-lg border-2 border-border hover:border-primary transition-all cursor-pointer"
-                          >
-                            <RadioGroupItem value={option} id={option} />
-                            <Label
-                              htmlFor={option}
-                              className="flex-1 cursor-pointer text-base"
+                        {currentQuestion!.options.map((option) => {
+                          const radioId = `${currentQuestion!.id}-${option}`;
+                          return (
+                            <div
+                              key={option}
+                              className="flex items-center space-x-3 p-3 rounded-lg border-2 border-border hover:border-primary transition-all cursor-pointer"
                             >
-                              {option}
-                            </Label>
-                          </div>
-                        ))}
+                              <RadioGroupItem value={option} id={radioId} />
+                              <Label
+                                htmlFor={radioId}
+                                className="flex-1 cursor-pointer text-base"
+                              >
+                                {option}
+                              </Label>
+                            </div>
+                          );
+                        })}
                       </RadioGroup>
                     )}
 

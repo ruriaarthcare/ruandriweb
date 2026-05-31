@@ -1,8 +1,7 @@
 import { auth } from "@/firebase";
 import { Booking } from "@/models/booking.model";
 
-const ADMIN_API_BASE =
-  "https://api-difbvyyjra-uc.a.run.app/admin";
+const ADMIN_API_BASE = `${import.meta.env.VITE_API_URL}/admin`;
 
 async function getAuthHeader() {
   const user = auth.currentUser;

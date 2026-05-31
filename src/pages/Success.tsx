@@ -10,6 +10,13 @@ import { closeSession } from "@/services/session.service";
 const Success = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Guard: redirect if navigated directly without state
+  if (!location.state) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
   const { type, plan, userInfo, selectedDate, selectedTime, address } = location.state || {};
 
   const handleReturnHome = async () => {
@@ -133,9 +140,11 @@ const Success = () => {
                     <span className="font-medium capitalize text-foreground">{type}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t">
-                    <span className="text-lg font-semibold text-foreground">Total Amount</span>
+                    <span className="text-lg font-semibold text-foreground">Total Amount Paid</span>
                     <span className="text-2xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-                      {plan?.price}
+                      ₹{plan?.price
+                        ? (parseInt(plan.price.replace(/[₹,]/g, "")) - (plan.discount || 0)).toLocaleString()
+                        : "—"}
                     </span>
                   </div>
                 </div>

@@ -100,6 +100,13 @@ const plans: PlanFeatures[] = [
 const Subscription = () => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Guard: redirect if navigated directly without state or type
+  if (!location.state || !location.state.type) {
+    navigate("/", { replace: true });
+    return null;
+  }
+
   const { type, answers, notes, userInfo } = location.state || {};
 
   const handleSelectPlan = async (plan: PlanFeatures) => {
