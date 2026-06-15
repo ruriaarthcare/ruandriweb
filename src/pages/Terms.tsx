@@ -9,7 +9,7 @@ const Terms = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-subtle">
+    <div className="min-h-screen flex flex-col bg-gradient-subtle uses-header">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <Button

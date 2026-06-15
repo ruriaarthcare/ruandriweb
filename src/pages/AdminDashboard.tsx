@@ -437,7 +437,7 @@ const downloadAsExcel = (booking: Booking) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-hero">
+    <div className="min-h-screen no-header-offset bg-gradient-hero">
       {/* Header */}
       <header className="bg-background/95 backdrop-blur border-b border-border sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
